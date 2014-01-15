@@ -96,7 +96,10 @@
         /* Applies some specials css-styles to the rows */
         _rs: function(a) {
             var t = this, c = t.csn, d = t.element.data(), o = d.opt, l, r, f = function(x) {
-                var y = $('tr', x), tf = (!!(($('tfoot', x).size() > 0 && !o.tf))), th =  (!!(($('thead', x).size() > 0 && !o.th)));
+                var xt = $(x).children('table');
+                var y = $(xt).children('thead,tfoot,tbody').children('tr'),
+                    tf = (!!(($(xt).children('tfoot').size() > 0 && !o.tf))),
+                    th =  (!!(($(xt).children('thead').size() > 0 && !o.th)));
                 if (y.length < 1) {
                     return;
                 }
@@ -106,16 +109,16 @@
                     y.last().addClass(c.rowe);
                 } else {
                     if (!th) {
-                        $('tbody tr', x).first().addClass(c.rowb);
+                        $(tx).children('tbody tr').first().addClass(c.rowb);
                     }
                     if (tf) {
-                        $('thead tr', x).last().addClass(c.rowe);
+                        $(tx).children('thead tr').last().addClass(c.rowe);
                     } else {
-                        $('tbody tr', x).last().addClass(c.rowe);
+                        $(tx).children('tbody tr').last().addClass(c.rowe);
                     }
                 }
                 y.each(function() {
-                    var b = $('td,th',this);
+                    var b = $(this).children('td,th');
                     $(b).removeClass(c.colb).removeClass(c.cole);
                     $(b[0]).addClass(c.colb);
                     $(b[b.length-1]).addClass(c.cole);
@@ -161,12 +164,13 @@
                     l = d.tb3; r = d.tb4;
                     break;
             }
-            $('tr',r).each(function() {
-                var y = $('td,th',this);
+
+            $(r).children('table').children('thead,tbody,tfoot').children('tr').each(function() {
+                var y = $(this).children('td,th');
                 y.each(function(z) { if (z < o.cols) { $(this).remove(); } });
             });
-            $('tr',l).each(function() {
-                var y = $('td,th',this);
+            $(l).children('table').children('thead,tbody,tfoot').children('tr').each(function() {
+                var y = $(this).children('td,th');
                 y.each(function(z) { if (z > (o.cols)-1) { $(this).remove(); } });
             });
             t._rs(a);
@@ -196,10 +200,11 @@
                     break;
             }
             var h = { l:[], r:[] };
-            $(y,r).each(function(i) { h.l[i] = $(this).first(x).height(); });
-            $(y,l).each(function(i) { h.r[i] = $(this).first(x).height(); });
-            $(y,r).each(function(i) { var j = h.r[i]; if (h.l[i] > h.r[i]) { j = h.l[i]; } $(x, this).first().css({'height':j+'px'}); });
-            $(y,l).each(function(i) { var j = h.l[i]; if (h.r[i] > h.l[i]) { j = h.r[i]; } $(x, this).first().css({'height':j+'px'}); });
+
+            $(r).children('table').children('tbody,thead,tfoot').children(y).each(function(i) { h.l[i] = $(this).first(x).height(); });
+            $(l).children('table').children('tbody,thead,tfoot').children(y).each(function(i) { h.r[i] = $(this).first(x).height(); });
+            $(r).children('table').children('tbody,thead,tfoot').children(y).each(function(i) { var j = h.r[i]; if (h.l[i] > h.r[i]) { j = h.l[i]; } $(x, this).first().css({'height':j+'px'}); });
+            $(l).children('table').children('tbody,thead,tfoot').children(y).each(function(i) { var j = h.l[i]; if (h.r[i] > h.l[i]) { j = h.r[i]; } $(x, this).first().css({'height':j+'px'}); });
             e.data({size:$.extend(d.size, {hl:l.height(),hr:r.height()})});
         },
 
@@ -210,6 +215,7 @@
             }
             a = (''+a).toLowerCase();
             var b = 0, t = this, d = t.element.data(), o = d.opt, h, l, r, z = 'table', g = 'colgroup';
+
             var _attr = function(a) {
                 var b = 'table';
                 $(b,a).attr('cellpadding',d.padding);
@@ -238,19 +244,20 @@
                     l = d.tb3; r = d.tb4;
                     break;
             }
+
             if (a !== 'tbody') {
                 if (b) {
                     r.append(h);
                     if (o.cols) {
                         l.append(h);
                         $(g,l).remove();
-                        $(z,l).prepend(d.size.cl).css({'width':d.size.wl+'px'});
+                        $(l).children(z).prepend(d.size.cl).css({'width':d.size.wl+'px'});
                         _attr(l);
                         l.css({'width':d.size.wl+'px'});
                     }
                     t._sc(a);
                     $(g,r).remove();
-                    $(z,r).prepend(d.size.cr).css({'width':d.size.wr+'px'});
+                    $(r).children(z).prepend(d.size.cr).css({'width':d.size.wr+'px'});
                     _attr(r);
                     r.css({'width':d.size.wr+'px'});
                     this._sr(a);
@@ -259,7 +266,7 @@
                 if (o.cols) {
                     l.append(r.html());
                     $(g,l).remove();
-                    $(z,l).prepend(d.size.cl).css({'width':d.size.wl+'px'});
+                    $(l).children(z).prepend(d.size.cl).css({'width':d.size.wl+'px'});
                     if ($(a,l).attr('id')) {
                         $(a,l).attr('role', $(a,l).attr('id') || '').removeAttr('id');
                     }
@@ -268,7 +275,7 @@
                 }
                 t._sc(a);
                 $(g,r).remove();
-                $(z,r).prepend(d.size.cr).css({'width':d.size.wr+'px'});
+                $(r).children(z).prepend(d.size.cr).css({'width':d.size.wr+'px'});
                 if ($(a,r).attr('id')) {
                     $(a,r).attr('role', $(a,r).attr('id') || '').removeAttr('id');
                 }
@@ -299,6 +306,7 @@
         _ti: function() {
             var t = this, d = t.element.data(), o = d.opt, a, z = 'table';
             d.tb4.append('<'+z+'>'+d.cln.html()+'</'+z+'>');
+
             if (o.tf) {
                 a = 'tfoot';
                 $(a,d.tb4).remove();
@@ -310,7 +318,7 @@
                 t._tc(a);
             }
             t._tc('tbody');
-            $(z,d.tbl).each(function() { $(this).css({'border-collapse':'collapse','table-layout':'fixed'}); });
+            $("." + t.csn.tbl + '-content').children(z).each(function() { $(this).css({'border-collapse':'collapse','table-layout':'fixed'}); });
         },
 
         /* Syncs the scroll positions */
@@ -365,14 +373,14 @@
             }
 
             /* get table rows */
-            tr = $('tr',e);
+            tr = $(e).children('thead, tbody, tfoot').children('tr');
             if (tr.length < 1) {
                 /* no rows? exit! */
                 return;
             }
 
             /* get table cols */
-            tc = $('th,td',tr[0]);
+            tc = $(tr[0]).children('th,td');
             if (tc.length < 1) {
                 /* no cols? exit! */
                 return;
@@ -403,24 +411,24 @@
             }
 
             /* check for thead, tfoot and tbody */
-            if ($('tbody',e).size() > 0) {
+            if ($(e).children('tbody').size() > 0) {
                 if (o.tfoot) {
                     a = 'tfoot';
-                    if ($(a,e).size() < 1) {
+                    if ($(e).children(a).size() < 1) {
                         o.tf = false;
                     } else {
                         if (o.tfoot) {
-                            o.tf = { 'id':($(a,e).attr('id') || 0), 'csn':($(a,e).attr('class') || 0) };
+                            o.tf = { 'id':($(e).children(a).attr('id') || 0), 'csn':($(e).children(a).attr('class') || 0) };
                         }
                     }
                 }
                 if (o.thead) {
                     a = 'thead';
-                    if ($(a,e).size() < 1) {
+                    if ($(e).children(a).size() < 1) {
                         o.th = false;
                     } else {
                         if (o.thead) {
-                            o.th = {'id':($(a,e).attr('id') || 0), 'csn':($(a,e).attr('class') || 0) };
+                            o.th = {'id':($(e).children(a) || 0), 'csn':($(e).children(a).attr('class') || 0) };
                         }
                     }
                 }
@@ -539,6 +547,7 @@
             if (o.tf) {
                 s.div+=d1+c.tf+d2+d1+c.tf+'-left'+s.tf+'"'+s.fl+d2+s.tc+d3+d1+c.tf+'-right'+s.tf+'"'+s.fl+d2+s.tc+d3+s.cb+d3;
             }
+
             d.append(s.div);
 
             /* store each element of the new container into a global object */
@@ -551,6 +560,7 @@
                 cln: k, opt: o
             });
             e.data(x);
+
             t._ti();
             s = 'hidden';
             s = {x:{'overflow-x':s}, a:{'overflow':s}};
