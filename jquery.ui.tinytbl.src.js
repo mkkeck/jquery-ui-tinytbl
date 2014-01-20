@@ -478,7 +478,7 @@
             x.padding = (e.attr('cellpadding') || '0');
             x.spacing = (e.attr('cellspacing') || '0');
 
-            a = { a:'auto', m:'margin', p:'padding', b:'border', w:'Width', t:'Top', f:'Bottom', l:'Left', r:'Rigth' };
+            a = { a:'auto', m:'margin', p:'padding', b:'border', w:'Width', t:'Top', f:'Bottom', l:'Left', r:'Right' };
 
             /* call the init function to apply classNames and some settings */
             t._init();
