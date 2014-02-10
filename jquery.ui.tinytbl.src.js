@@ -5,7 +5,7 @@
  * Copyright (c) 2012 Michael Keck <http://www.michaelkeck.de/>
  * Released:  2011-10-08
  * Version:   2012-09-16
- * I-Version: 2.1.1
+ * I-Version: 2.1.2beta - Interlock Table support
  * License:   Dual licensed under the MIT or GPL Version 2 licenses.
  *            http://jquery.org/license
  * Depends:   jquery.ui.core
@@ -523,7 +523,7 @@
             c = t.csn;
             k = e.clone();
 
-            /* create a new container for the TinyTbl */
+            /* create a new container for TinyTbl */
             var d1 = '<div class="', d2 ='">', d3 = '</div>';
             d = $(d1+c.tbl+(o.rtl ? '-rtl':'')+(e.attr('class') ? ' '+e.attr('class') : '')+(e.attr('id') ? '" role="'+e.attr('id') : '')+d2+d3);
 
