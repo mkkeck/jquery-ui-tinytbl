@@ -1,37 +1,76 @@
 /**
  * jQuery UI TinyTbl
  * Creates a scrollable table with fixed thead, tfoot and columns
- * CSS-Styles
  *
- * Copyright (c) 2011 Michael Keck <http://www.michaelkeck.de/>
- * Released:  2011-10-08
- * Version:   2011-10-08
- * I-Version: 1.9.0a
+ * Copyright (c) 2012-2014 Michael Keck <http://michaelkeck.de/>
+ * Released:  2014-01-28
+ * Version:   3.1.0
  * License:   Dual licensed under the MIT or GPL Version 2 licenses.
  *            http://jquery.org/license
  * Depends:   jquery.ui.core
  *            jquery.ui.widget
  */
-.ui-tinytbl .ui-widget-header td, .ui-tinytbl .ui-widget-header th   { border: 1px solid #e78f08; } /* NOTE: Theme specific! */
-.ui-tinytbl .ui-widget-content td, .ui-tinytbl .ui-widget-content th { border: 1px solid #dddddd; } /* NOTE: Theme specific! */
-.ui-tinytbl table { border-collapse: collapse; table-layout: fixed; }
-.ui-tinytbl-tb-right, .ui-tinytbl-firstrow td, .ui-tinytbl-firstrow th { border-top: 0 none !important; }
-.ui-tinytbl td, .ui-tinytbl th, .ui-tinytbl-tb-right, .ui-tinytbl-lastrow td, .ui-tinytbl-lastrow th { border-bottom: 0 none !important; }
-.ui-tinytbl-tb-left { border-top: 0 none !important; }
-.ui-tinytbl-tb-left, .ui-tinytbl-tb-right, .ui-tinytbl-tf-left, .ui-tinytbl-tf-right, .ui-tinytbl-th-left, .ui-tinytbl-th-right { margin: 0 0 0 0; padding: 0 0 0 0; }
 
-/* Left to Right */
-.ui-tinytbl { direction: ltr; margin: 0 0 0 0; padding: 0 0 0 0; }
-.ui-tinytbl td, .ui-tinytbl th { border-right: 0 none !important; }
-.ui-tinytbl td.ui-tinytbl-firstcol, .ui-tinytbl th.ui-tinytbl-firstcol { border-left: 0 none !important; }
-.ui-tinytbl .ui-tinytbl-tb-left,  .ui-tinytbl .ui-tinytbl-tf-left,  .ui-tinytbl .ui-tinytbl-th-left  { border-right: 0 none !important; margin-left: 0px; }
-.ui-tinytbl .ui-tinytbl-tb-right, .ui-tinytbl .ui-tinytbl-tf-right, .ui-tinytbl .ui-tinytbl-th-right { margin-left: -1px; }
-.ui-tinytbl .ui-tinytbl-tb-right { border-right: 0 none !important; }
+.ui-tinytbl {
+    padding: 4px;
+}
+.ui-tinytbl-helper-resizable {
+    border: 1px dotted rgba(34,142,241,0.75);
+    background-color: rgba(34,142,241,0.25);
+}
 
-/* Right to Left */
-.ui-tinytbl-rtl { direction: rtl; margin: 0 0 0 0; padding: 0 0 0 0; }
-.ui-tinytbl-rtl td, .ui-tinytbl-rtl th { border-left: 0 none !important; }
-.ui-tinytbl-rtl td.ui-tinytbl-firstcol, .ui-tinytbl-rtl th.ui-tinytbl-firstcol { border-right: 0 none !important; }
-.ui-tinytbl-rtl .ui-tinytbl-tb-left,  .ui-tinytbl-rtl .ui-tinytbl-tf-left,  .ui-tinytbl-rtl .ui-tinytbl-th-left  { border-left: 0 none !important; margin-left: -1px; }
-.ui-tinytbl-rtl .ui-tinytbl-tb-right, .ui-tinytbl-rtl .ui-tinytbl-tf-right, .ui-tinytbl-rtl .ui-tinytbl-th-right { margin-right: -1px; }
-.ui-tinytbl-rtl .ui-tinytbl-tb-right { border-left: 0 none !important; }
+.ui-tinytbl table {
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+.ui-tinytbl td,
+.ui-tinytbl th {
+    border: 1px solid #000;
+    font-size: 1em;
+    font-family: Arial, Helvetica, Tahoma, sans-serif;
+    padding: 2px 4px;
+    position: relative;
+}
+.ui-tinytbl td, .ui-tinytbl td .ui-resizable,
+.ui-tinytbl th, .ui-tinytbl th .ui-resizable {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 30px;
+}
+.ui-tinytbl td.ui-tinytbl-helper-last,
+.ui-tinytbl th.ui-tinytbl-helper-last {
+    border-left: 0 none !important;
+    border-right: 0 none !important;
+    min-width: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    width: 0;
+}
+.ui-tinytbl .ui-icon-gripsmall-diagonal-se {
+    background: transparent none !important;
+}
+
+.ui-tinytbl tr.ui-selected td,
+.ui-tinytbl tr.ui-selected th {
+    background-color: #ffe45c !important;
+}
+/*
+.ui-tinytbl td .ui-resizable,
+.ui-tinytbl th .ui-resizable {
+    padding: 4px;
+    margin: -4px;
+}
+*/
+.ui-tinytbl td.ui-resizable {
+    position: relative;
+}
+.ui-tinytbl td.ui-resizable .ui-resizable-e,
+.ui-tinytbl th.ui-resizable .ui-resizable-e {
+    height: 60px;
+    margin-top: -30px;
+    right: 4px;
+    top: 0;
+    width: 4px;
+}
+
+
