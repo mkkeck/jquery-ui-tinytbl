@@ -14,63 +14,76 @@
 .ui-tinytbl {
     padding: 4px;
 }
-.ui-tinytbl-helper-resizable {
-    border: 1px dotted rgba(34,142,241,0.75);
-    background-color: rgba(34,142,241,0.25);
-}
 
 .ui-tinytbl table {
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     table-layout: fixed;
 }
+.ui-tinytbl table,
 .ui-tinytbl td,
 .ui-tinytbl th {
-    border: 1px solid #000;
-    font-size: 1em;
+    font-size: 12px;
     font-family: Arial, Helvetica, Tahoma, sans-serif;
+}
+
+.ui-tinytbl .ui-widget-content td,
+.ui-tinytbl .ui-widget-content th,
+.ui-tinytbl .ui-widget-header td,
+.ui-tinytbl .ui-widget-header th {
+    border: inherit;
+    border-left-width: 0;
+    border-top-width: 0;
+    border-radius: 0;
+    min-width: 30px;
+    overflow: hidden;
     padding: 2px 4px;
     position: relative;
-}
-.ui-tinytbl td, .ui-tinytbl td .ui-resizable,
-.ui-tinytbl th, .ui-tinytbl th .ui-resizable {
-    overflow: hidden;
     text-overflow: ellipsis;
-    min-width: 30px;
+    -moz-border-radius: 0;
+    -webkit-border-radius: 0;
 }
-.ui-tinytbl td.ui-tinytbl-helper-last,
-.ui-tinytbl th.ui-tinytbl-helper-last {
-    border-left: 0 none !important;
-    border-right: 0 none !important;
-    min-width: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+.ui-tinytbl .ui-widget-content td:first-child,
+.ui-tinytbl .ui-widget-content th:first-child,
+.ui-tinytbl .ui-widget-header td:first-child,
+.ui-tinytbl .ui-widget-header th:first-child {
+    border-left-width: 1px;
+}
+.ui-tinytbl tr.ui-widget-content:first-child td,
+.ui-tinytbl tr.ui-widget-content:first-child th,
+.ui-tinytbl tr.ui-widget-header:first-child td,
+.ui-tinytbl tr.ui-widget-header:first-child th {
+    border-top-width: 1px;
+}
+.ui-tinytbl td.helper-last,
+.ui-tinytbl th.helper-last {
+    min-width: 0;
+    padding-left: 0;
+    padding-right: 0;
     width: 0;
 }
 .ui-tinytbl .ui-icon-gripsmall-diagonal-se {
     background: transparent none !important;
 }
 
-.ui-tinytbl tr.ui-selected td,
-.ui-tinytbl tr.ui-selected th {
-    background-color: #ffe45c !important;
-}
-/*
-.ui-tinytbl td .ui-resizable,
-.ui-tinytbl th .ui-resizable {
-    padding: 4px;
-    margin: -4px;
-}
-*/
-.ui-tinytbl td.ui-resizable {
-    position: relative;
-}
-.ui-tinytbl td.ui-resizable .ui-resizable-e,
-.ui-tinytbl th.ui-resizable .ui-resizable-e {
-    height: 60px;
-    margin-top: -30px;
-    right: 4px;
+/* Resizable */
+.ui-resizable .ui-resizable-e,
+.ui-resizable .ui-resizable-w {
+    font-size: 100%;
+    height: 100%;
+    position: absolute;
     top: 0;
-    width: 4px;
+    width: 10px;
+    z-index: 100;
 }
-
+.ui-resizable .ui-resizable-e {
+    cursor: e-resize;
+    float: right;
+    right: -8px;
+}
+.ui-resizable .ui-resizable-w {
+    cursor: w-resize;
+    float: left;
+    left: -8px;
+}
 

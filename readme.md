@@ -17,50 +17,39 @@ Convert a normal table into a TinyTable, simple use this command:
 
 
 #### You can use follow options:
-
-- `direction (string 'ltr' | 'rtl')`  
-  This option set the text-direction. Default is 'ltr'.
-
-- `thead (bool true or false | object { 'classname':'your-css-classname' })`  
-  If your table has a thead and tbody, you can set with this option thead
-  as fixed. Default is true. Notice: If your table has not a thead or
-  tbody this option is always set to false.
-
-- `tfoot (bool true or false | object { 'classname':'your-css-classname'[, 'top':true|'after'|'before'] })`  
-  If your table has a tfoot and tbody, you can set with this option tfoot
-  as fixed. Default is true. Notice: If your table has not a tfoot or
-  tbody this option is always set to false.
-
-- `tbody (object { 'classname':'your-css-classname' })`
-
-- `fixed (integer 0)`  
-  Makes the first columns (counted from ltr or rtl, see also direction)
-  fixed. Default is 0, no columns are fixed.
-
-- `width (mixed 'auto')`  
-  Set the width of TinyTable. You can use values with px, pt, em or %.
-  If you use only a numeric value,  the width is calculated in pixels.
-  When setting this option to a percentage (%) value the  width of
-  TinyTable is calculated to its parent element or $('body').  
-  __NEW:__  
-  If you use 'auto', TinyTable width is calculated to its parent element
-  maximum available width. If the generated Table is smaller than maximum
-  available width, TinyTable would be resized to its outer width.
-
-- `height (mixed 'auto')`  
-  Set the height of TinyTable. You can use values with px, pt, em or %.
-  If you use only a numeric value,  the height is calculated in pixels.
-  When setting this option to a percentage (%) value the height of
-  TinyTable is calculated to its parent element or $('body').  
-  __NEW:__  
-  If you use 'auto', TinyTable height is calculated to its parent element
-  maximum available height. If the generated Table is smaller than maximum
-  available height, TinyTable would be resized to its outer height.
-
-- `autofocus (bool true | false)`  
-  Set the focus after TinyTable was created to the scrollable area.
-  Default is false.
-
+`
+        table.tinytbl({
+            'body': { 'autofocus':false }, 
+            'head': { 'useclass':'test' },  
+            'foot': { 'useclass':'test', 'atTop':false },  
+            'cols': {  
+                'fixed': fixed,  
+                'moveable':  { 'disables': [0,1] },  
+                'resizable': { 'disables': [0,1,2,4,5] },  
+                'sortable':  { 'disables': [], defaults : [] }  
+            },  
+            'rtl':0,  
+            'width':'auto', 'height':'auto',  
+            'rowadd': function(rows, pos, data) {  
+                console.log('add');  
+                console.log(rows);  
+                console.log(pos);  
+                console.log(data);  
+            },  
+            'rowselect': function(event, ui) {  
+                console.log('You selected the following rows: ' + $(this).find('.ui-selected').map(function(id) {  
+                    return id;  
+                }).get().join(', '));  
+            },  
+            /*'rowremove': function(rows, pos, data) {  
+                console.log('remove');  
+                console.log(rows);  
+                console.log(pos);  
+                console.log(data);  
+            },*/  
+            '':''  
+        });  
+`        
 
 ### Destroy
 

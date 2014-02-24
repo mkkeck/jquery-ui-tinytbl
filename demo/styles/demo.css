@@ -2,117 +2,19 @@ html, body {
     /*font-size:                          12px !important;*/
     text-align:                         center;
 }
-code, pre, textarea { font-family: 'DejaVu Sans Mono', monospace; }
-fieldset legend {
-    font-weight:                        bold;
-    margin-bottom:                      5px;
-    padding:                            4px 8px 4px 8px;
+html, body, td, th {
+    font-family: 'Arial', 'Verdana', 'Helvetica', sans-serif;
+    font-weight: normal;
 }
-form, h2, h3 {
-    margin:                             0 0 0 0;
-    padding:                            0 0 10px 0;
+#menu .ui-button .ui-button-text {
+    font-size: 12px;
+    font-weight: normal;
+    text-transform: uppercase;
+    padding-bottom: 2px;
+    padding-top: 2px;
 }
-h2 { padding-top: 40px; }
-h3 { padding-top: 20px; }
-table { border-collapse: collapse; }
-table td, table th { border: 1px solid #aaaaaa; }
-table, table td, table th { white-space: nowrap; }
-tr.row-added td, tr.row-added th { color: #009900; }
-ul {
-    list-style:                         none;
-    margin:                             0 0 0 0;
-    padding:                            0 0 0 0;
-}
-ul li {
-    background-image:                   url('./../images/list-marker.png');
-    background-position:                0 0;
-    background-repeat:                  no-repeat;
-    padding-bottom:                     10px;
-    padding-left:                       20px;
-}
-
-#body {
-    display:                            block;
-    margin:                             0px auto;
-    text-align:                         left;
-    width:                              700px;
-}
-#body a {
-    background-color:                   transparent;
-    color:                              #cc6600;
-    font-weight:                        bold;
-}
-#body a:hover {
-    background-color:                   transparent;
-    color:                              #cc0000;
-    font-weight:                        bold;
-}
-#example-1-table {
-    overflow:                           auto;
-    height:                             250px;
-    width:                              700px;
-}
-#logo {
-    float:                              left;
-    height:                             120px;
-    width:                              280px;
-}
-#logo a {
-    background:                         url('./../images/logo.png') 0 0 no-repeat;
-    display:                            block;
-    outline:                            0 none !important;
-    height:                             100px;
-    text-indent:                        -9999px;
-    width:                              190px;
-}
-
-.body { clear: both; width: 700px; }
-.body strong.keyword { padding-right: 5px; }
-.body .keyword       { color: #000099; font-weight: bold; }
-.body .setting       { color: #666666; }
-.body .type          { color: #cc6600; }
-.body .tag           { color: #6495ed; }
-.body .var           { color: #cc0000; font-weight: bold; }
-
-.body-download ul li .ui-button { margin-top: 8px; }
-
-.body-manual h3 { padding-bottom: 0px; }
-.body-manual h4 { margin: 0 0 0 0; padding: 0 0 5px 0; }
-.body-manual code {
-    background-color:                   #eeeeee;
-    color:                              #333333;
-    padding:                            1px 2px 1px 2px;
-}
-
-.body-menu p   { margin: 0 0 0 0 !important; padding: 6px 3px 6px 3px !important; text-align: center; }
-.body-menu p a { text-transform: uppercase; }
-.body-menu-fix { background-color: #ffffff; color: #000000; padding: 2px 0 8px 0; position: fixed; top: 0; z-index: 99999; }
-
-.body-syntax { padding:  2px 2px 2px 2px; }
-.body-syntax textarea {
-    border:                             0 none !important;
-    margin:                             0 0 0 0;
-    padding:                            0 0 0 0;
-}
-
-.clear {
-    clear:                              both;
-}
-
-.CodeMirror, .ui-widget, .ui-widget li, .ui-widget p, .ui-widget td, .ui-widget th, li, p, td, th {
-    font-size:                          12px !important;
-    line-height:                        16px !important;
-}
-
-.extlink span {
-    display:                            inline-block;
-    vertical-align:                     middle;
-    margin-top:                         -2px;
-}
-
-.ui-button .ui-button-text {
-    padding-bottom:                     2px !important;
-    padding-top:                        2px !important;
+#menu {
+    padding: 10px;
 }
 
 
