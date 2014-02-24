@@ -3,7 +3,6 @@ $(document).ready(function() {
     var cols = 20, fixed = 2, rows = 50;
 
     var table = $('<table id="sample-table-1"></table>');
-    $('body').append(table);
 
     var thead = $('<thead class="test-header" id="test-header"></thead>'),
         tfoot = $('<tfoot></tfoot>'),
@@ -56,7 +55,12 @@ $(document).ready(function() {
     if (debug !== '') {
         console.timeEnd(debug);
     }
-
+    var source = $('#sample-1');
+    source.hide();
+    source.after(table);
+    //var table2 = table.clone();
+    //source.after(table2);
+    //table2.attr('id','sample-table-2').tinytbl();
     var init = function() {
         if (debug !== '') {
             debug = 'TinyTable width '+rows+' rows and '+cols+' cols';
@@ -100,7 +104,6 @@ $(document).ready(function() {
     };
     init();
 
-    $('#sample-1').css({'display':'none'});
     var menu = $('#menu');
     menu.find('a').button();
     $('a.toggle').on('click',this, function() {
@@ -133,11 +136,11 @@ $(document).ready(function() {
         row = $('<tr style="color: #c00"></tr>');
         rows++;
         columns(row, rows);
-        table.tinytbl('prepend', row);
+        source.tinytbl('prepend', row);
         return false;
     });
     $('a.remove').on('click',this, function() {
-        var del = table.children('tbody').get(0).rows.length;
+        var del = table.tinytbl('numrows');
         if (debug !== '') {
             debug = 'Remove row';
             console.time(debug);
@@ -148,5 +151,9 @@ $(document).ready(function() {
         }
         return false;
     });
+
+    console.log(table.tinytbl('getdata','head'));
+
+
 });
 
