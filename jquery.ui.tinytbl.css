@@ -11,57 +11,86 @@
  *            jquery.ui.widget
  */
 
+/* Main Container */
 .ui-tinytbl {
     padding: 4px;
 }
+.ui-tinytbl, .ui-tinytbl td, .ui-tinytbl th {
+    font: inherit;
+    font-size: 12px;
+}
 
-.ui-tinytbl table {
+/* Content Container and Header Container */
+.ui-tinytbl .ui-widget-content,
+.ui-tinytbl .ui-widget-header {
+    border-radius: 0;
+    padding: 0;
+    -moz-border-radius: 0;
+    -webkit-border-radius: 0;
+}
+
+/* Table */
+.ui-tinytbl-outer {
     border-collapse: separate;
     border-spacing: 0;
     table-layout: fixed;
 }
-.ui-tinytbl table,
-.ui-tinytbl td,
-.ui-tinytbl th {
-    font-size: 12px;
-    font-family: Arial, Helvetica, Tahoma, sans-serif;
+.ui-tinytbl-inner > tr,
+.ui-tinytbl-inner > tr > td,
+.ui-tinytbl-inner > tr > th {
+    /* Copy CSS properties */
+    background: inherit;
+    border: inherit;
+    color: inherit;
+}
+/* Borders horizontal */
+.ui-tinytbl-inner > tr+tr > td,
+.ui-tinytbl-inner > tr+tr > th {
+    border-top: inherit;
+    border-bottom: 0 none;
+}
+.ui-tinytbl-inner > tr:last-child > td,
+.ui-tinytbl-inner > tr:last-child > th {
+    border-bottom: inherit;
+}
+.ui-tinytbl-inner > tr:first-child > td,
+.ui-tinytbl-inner > tr:first-child > th {
+    border-top: 0 none;
+    border-bottom: 0 none;
 }
 
-.ui-tinytbl .ui-widget-content td,
-.ui-tinytbl .ui-widget-content th,
-.ui-tinytbl .ui-widget-header td,
-.ui-tinytbl .ui-widget-header th {
-    border: inherit;
-    border-left-width: 0;
-    border-top-width: 0;
-    border-radius: 0;
-    min-width: 30px;
-    overflow: hidden;
-    padding: 2px 4px;
-    position: relative;
-    text-overflow: ellipsis;
-    -moz-border-radius: 0;
-    -webkit-border-radius: 0;
+/* Text-Direction: LEFT */
+.ui-tinytbl-left { direction: ltr; }
+/* Borders vertical */
+.ui-tinytbl-left .ui-tinytbl-body,
+.ui-tinytbl-left .ui-tinytbl-foot,
+.ui-tinytbl-left .ui-tinytbl-head,
+.ui-tinytbl-left .ui-tinytbl-inner > tr > td + td,
+.ui-tinytbl-left .ui-tinytbl-inner > tr > td + th,
+.ui-tinytbl-left .ui-tinytbl-inner > tr > th + td,
+.ui-tinytbl-left .ui-tinytbl-inner > tr > th + th,
+.ui-tinytbl-left .ui-tinytbl-column .ui-tinytbl-inner > tr > :first-child,
+.ui-tinytbl-right .ui-tinytbl-column .ui-tinytbl-inner > tr > :last-child {
+    border-left: 0 none;
 }
-.ui-tinytbl .ui-widget-content td:first-child,
-.ui-tinytbl .ui-widget-content th:first-child,
-.ui-tinytbl .ui-widget-header td:first-child,
-.ui-tinytbl .ui-widget-header th:first-child {
-    border-left-width: 1px;
+
+/* Text-Direction: RIGHT */
+.ui-tinytbl-right { direction: rtl; }
+/* Borders vertical */
+.ui-tinytbl-right .ui-tinytbl-body,
+.ui-tinytbl-right .ui-tinytbl-foot,
+.ui-tinytbl-right .ui-tinytbl-head,
+.ui-tinytbl-right .ui-tinytbl-inner > tr > td + td,
+.ui-tinytbl-right .ui-tinytbl-inner > tr > td + th,
+.ui-tinytbl-right .ui-tinytbl-inner > tr > th + td,
+.ui-tinytbl-right .ui-tinytbl-inner > tr > th + th,
+.ui-tinytbl-right .ui-tinytbl-column .ui-tinytbl-inner > tr > :first-child,
+.ui-tinytbl-left .ui-tinytbl-column .ui-tinytbl-inner > tr > :last-child {
+    border-right: 0 none;
 }
-.ui-tinytbl tr.ui-widget-content:first-child td,
-.ui-tinytbl tr.ui-widget-content:first-child th,
-.ui-tinytbl tr.ui-widget-header:first-child td,
-.ui-tinytbl tr.ui-widget-header:first-child th {
-    border-top-width: 1px;
-}
-.ui-tinytbl td.helper-last,
-.ui-tinytbl th.helper-last {
-    min-width: 0;
-    padding-left: 0;
-    padding-right: 0;
-    width: 0;
-}
+
+
+/* Remove uggly resizable icon */
 .ui-tinytbl .ui-icon-gripsmall-diagonal-se {
     background: transparent none !important;
 }
@@ -87,3 +116,17 @@
     left: -8px;
 }
 
+/* THEME SPECIFIC */
+.ui-tinytbl-outer .ui-widget-content > tr.ui-state-hover,
+.ui-tinytbl-outer .ui-widget-content > tr.ui-state-hover > th
+.ui-tinytbl-outer .ui-widget-content > tr.ui-state-hover > td {
+
+}
+.ui-tinytbl-outer .ui-widget-header > tr.ui-state-hover,
+.ui-tinytbl-outer .ui-widget-header > tr.ui-state-hover > th
+.ui-tinytbl-outer .ui-widget-header > tr.ui-state-hover > td {
+
+}
+.ui-tinytbl-outer .ui-widget-content .ui-state-hover > td {
+    font-weight: normal;
+}

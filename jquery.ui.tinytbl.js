@@ -1,6 +1,6 @@
 /**
  * jQuery UI TinyTbl
- * Creates a scrollable table with fixed thead, tfoot and columns
+ * Creates a scrollable table with frozen thead, tfoot and columns
  *
  * Copyright (c) 2012-2014 Michael Keck <http://michaelkeck.de/>
  * Released:  2014-02-21
@@ -13,21 +13,37 @@
 
 
 (function($) {
-
     /**
-     * global scrollbar size
-     * @type {null|Number}
+     * Get scrollbar size
+     * @return  {Number} scrollbar
+     * @public
      */
-    var scrollbar = null;
+    $.scrollbar = function() {
+        if (typeof(window['scrollbar']) === 'undefined' || window['scrollbar'] === null) {
+            var body = $('body'), elem = $('<div id="ui-helper-scrollbar"></div>');
+            elem.css({ 'width': '100px', 'height': '100px', 'overflow': 'scroll', 'position': 'absolute', 'top': '-110px','left': '-110px', '-webkit-overflow-scrolling': 'touch' });
+            body.append(elem);
+            window['scrollbar'] = elem.get(0).offsetWidth - elem.get(0).clientWidth;
+            elem.remove();
+        }
+        return window['scrollbar'];
+    };
+
+})(jQuery);
+
+
+(function($) {
 
     /**
      * global counter for TinyTbl objects
      * @type {Object}
      */
     var tinytables = {
-        counter: 1,
+        added: 0,   // counter added TinyTables
+        removed: 0, // counter removed TinyTables
         timers: {}
     };
+
 
     $.widget('ui.tinytbl', {
 
@@ -38,25 +54,37 @@
          * @type {Object}
          */
         options: {
-            'autofocus': false,
-            'useclass': null,
-            'cols': {
-                'autosize':  false,
-                'fixed':     0,
-                'moveable':  false,
-                'resizable': false,
-                'sortable':  false
+            'body': {
+                'useclass': null,
+                'autofocus': false
             },
-            'foot':      true,
-            'head':      true,
-            'height':    'auto',
-            'id':        null,
+            'cols': {
+                'autosize': false,
+                'frozen': 0,
+                'moveable': false,
+                'resizable': false,
+                'sortable': false
+            },
+            'foot': {
+                'useclass': null,
+                'atTop': false
+            },
+            'head': {
+                'useclass': null
+            },
+            'height': 'auto',
+            'id': null,
             'resizable': false,
-            'rtl':       false,
-            'width':     'auto',
-            'rowadd':    null, // function() {},
-            'rowremove': null, // function() {},
-            'rowselect': null  // function() {}
+            'rows': {
+                'onInsert': null,     // function() {},
+                'onRemove': null,     // function() {},
+                'onSelect': null,     // function() {}
+                'onContext': null,    // function() {}
+                'multiselect': false
+            },
+            'rtl': false,
+            'useclass': null,
+            'width': 'auto'
         },
 
         /**
@@ -64,9 +92,9 @@
          * @type {Object}
          */
         classes: {
-            body: { 1:'ui-widget-content ui-corner-all', 2:'ui-widget-header ui-corner-all' },
-            foot: { 1:'ui-widget-header ui-corner-all',  2:'ui-widget-header ui-corner-all' },
-            head: { 1:'ui-widget-header ui-corner-all',  2:'ui-widget-header ui-corner-all' }
+            body: { normal:'ui-widget-content', frozen:'ui-widget-header' },
+            foot: { normal:'ui-widget-header',  frozen:'ui-widget-header' },
+            head: { normal:'ui-widget-header',  frozen:'ui-widget-header' }
         },
 
         /**
@@ -75,20 +103,6 @@
          */
         tinytbl: null,
 
-        /**
-         * Get parent element of an element
-         * @param   [element]
-         * @return  {Object|Boolean}
-         * @private
-         */
-        _parent: function(element) {
-            element = element || this.element;
-            if (this._tagname(element.parent()) !== 'body' && this._tagname(element.parent()) !== 'html') {
-                return element.parent();
-            }
-            return false;
-        },
-
 
         /**
          * Get tagname of an element
@@ -96,9 +110,24 @@
          * @return  {string}
          * @private
          */
-        _tagname: function(element) {
+        tagname: function(element) {
             element = element || this.element;
             return (''+element.get(0).tagName).toLowerCase();
+        },
+
+
+        /**
+         * Get parent element of an element
+         * @param   [element]
+         * @return  {Object|Boolean}
+         * @private
+         */
+        parent: function(element) {
+            element = element || this.element;
+            if (this.tagname(element.parent()) !== 'body' && this.tagname(element.parent()) !== 'html') {
+                return element.parent();
+            }
+            return false;
         },
 
 
@@ -110,7 +139,7 @@
          * @return  {number}
          * @private
          */
-        _fix_size: function(element, size) {
+        correct_size: function(element, size) {
             var value = 0;
             if (!(element && (size === 'height' || size === 'width'))) {
                 return value;
@@ -137,17 +166,17 @@
          * @returns  {void}
          * @internal
          */
-        _max_size: function() {
+        max_size: function() {
             if (!this.tinytbl) {
                 return;
             }
 
             // some variables
-            var width  = (''+this.options.width).toLowerCase(),
-                height = (''+this.options.height).toLowerCase(),
-                layout = this.options.layout,
-                $body  = $('body'),
-                $papa  = this._parent(this.tinytbl.main) || $body;
+            var width  = this.options.width,
+                height = this.options.height,
+                layout = this.layout,
+                $body = $('body'),
+                $parent = this.parent(this.tinytbl.main) || $body;
 
             // calculating
             var calc = function(val, max) {
@@ -166,45 +195,25 @@
             };
 
             // maxwidth
-            if (width === 'auto' || width.substr(-1,1) === '%') {
-                layout.maxwidth = (($papa !== $body) ? $papa.width() : $(window).width());
+            if (layout.width.autoset) {
+                layout.width.maxsize = (($parent !== $body) ? $parent.width() : $(window).width());
             }
-            if (width !== 'auto') {
-                layout.maxwidth = calc(width, layout.maxwidth);
+            if (layout.width.autoset < 2) {
+                layout.width.maxsize = calc(width, layout.width.maxsize);
             }
-            layout.maxwidth -= layout.fixwidth;
-            if (this.options.cols.fixed && $(document).height() > $(window).height()) {
-                layout.maxwidth -= scrollbar;
+            layout.width.maxsize -= layout.width.correct;
+            if (this.options.cols.frozen && $(document).height() > $(window).height()) {
+                layout.width.maxsize -= layout.scrollbar;
             }
 
             // maxheight
-            if (height === 'auto' || height.substr(-1,1) === '%') {
-                layout.maxheight = (($papa !== $body) ? $papa.height() : $(window).height());
+            if (layout.height.autoset) {
+                layout.height.maxsize = (($parent !== $body) ? $parent.height() : $(window).height());
             }
-            if (height !== 'auto') {
-                layout.maxheight = calc(width, layout.maxheight);
+            if (layout.height.autoset < 2) {
+                layout.height.maxsize = calc(height, layout.height.maxsize);
             }
-            layout.maxheight -= layout.fixwidth;
-        },
-
-
-        /**
-         * Get scrollbar size
-         * @return  {void}
-         * @private
-         */
-        _scrollbar: function() {
-            if (scrollbar === null) {
-                var elem = $('<div id="ui-tinytbl-helper-scrollbar"></div>');
-                elem.css({
-                    'width': '100px', 'height': '100px', 'overflow': 'scroll',
-                    'position': 'absolute', 'top': '0px','left': '0px',
-                    '-webkit-overflow-scrolling': 'touch'
-                });
-                $('body').append(elem);
-                scrollbar = elem.get(0).offsetWidth - elem.get(0).clientWidth;
-                elem.remove();
-            }
+            layout.height.maxsize -= layout.height.correct;
         },
 
 
@@ -213,11 +222,11 @@
          * @return  {void}
          * @private
          */
-        _parent_hide: function() {
+        parent_hide: function() {
             if (!this.tinytbl || !this.tinytbl.main) {
                 return;
             }
-            var parent = this._parent(this.tinytbl.main);
+            var parent = this.parent(this.tinytbl.main);
             if (!(parent && parent.is(':visible')) ) {
                 return; // exit: parent is hidden or table object not found
             }
@@ -234,11 +243,11 @@
          * @return  {void}
          * @private
          */
-        _parent_show: function() {
+        parent_show: function() {
             if (!this.tinytbl || !this.tinytbl.main) {
                 return;
             }
-            var parent = this._parent(this.tinytbl.main);
+            var parent = this.parent(this.tinytbl.main);
             if (!(parent && !parent.is(':visible')) ) {
                 return;
             }
@@ -251,124 +260,96 @@
 
 
         /**
-         * Calculates and syncs the width of each column
-         * from source table with another table
+         * Resize table layout
          * @return  {void}
          * @private
          */
-        _col_size: function() {
-            if (!this.tinytbl) {
-                return; // exit: table object not found
+        resize_layout: function() {
+            if (!this.tinytbl || !this.tinytbl.body || !this.tinytbl.body.normal) {
+                return;
             }
-            var opt = this.options, tbl = this.tinytbl,
-                width1 = [], width2 = [],
-                size1 = 0, size2 = 0,
-                tables = ['body','foot','head'];
-            $.each(tables, function(index, name) {
-                var cells;
-                if (!opt[name] || !tbl[name] || !tbl[name]['body1']) {
-                    return; // exit: table #1 not found
+            this.max_size();
+            var innerHeight, innerWidth,
+                outerHeight, outerWidth,
+                layout  = this.layout,
+                tinytbl = this.tinytbl,
+                body = tinytbl.body.normal.get(0),
+                maxWidth = layout.width.maxsize - layout.width.inner,
+                maxHeight = layout.height.maxsize - layout.height.inner;
+
+            // height
+            outerHeight = maxHeight;
+            if (layout.height.autoset === 2) {
+                outerHeight = layout.height.head + layout.height.foot + layout.height.body;
+                if (outerHeight > maxHeight) {
+                    outerHeight = maxHeight;
                 }
-                cells = tbl[name]['body1'].get(0).rows || [];
-                if (cells.length < 1) {
-                    return; // exit: no cells in table
-                }
-                cells = cells[cells.length-1].cells;
-                $.each(cells, function(num, col) {
-                    var val = Math.ceil(col.offsetWidth / 5) * 5;
-                    if (width1[num] && (width1[num] >= val)) {
-                        return;
-                    }
-                    width1[num] = val;
-                });
-                if (!tbl[name]['body2']) {
-                    return; // exit: table #2 not found
-                }
-                cells = tbl[name]['body2'].get(0).rows || [];
-                if (cells.length < 1) {
-                    return; // exit: no cells in table
-                }
-                cells = cells[cells.length-1].cells;
-                $.each(cells, function(num, col) {
-                    var val = Math.ceil(col.offsetWidth / 5) * 5;
-                    if (width2[num] && (width2[num] >= val)) {
-                        return;
-                    }
-                    width2[num] = val;
-                });
-            });
-            if (width1.length > 0) {
-                $.each(width1, function(index, value) {
-                    $('col[data-num="'+(index+opt.cols.fixed)+'"]').css({'width':value+'px'});
-                    size1 += value;
-                });
-                if (width2.length > 0) {
-                    $.each(width2, function(index, value) {
-                        $('col[data-num="'+index+'"]').css({'width':value+'px'});
-                        size2 += value;
-                    });
-                }
-                $.each(tables, function(index, name) {
-                    if (!opt[name] || !tbl[name] || !tbl[name]['table1']) {
-                        return;
-                    }
-                    var table = tbl[name]['table1'].get(0);
-                    table.style.width = size1+'px';
-                    if (!opt.layout.size1 || table.offsetWidth > opt.layout.size1) {
-                        opt.layout.size1 = table.offsetWidth;
-                    }
-                    if (tbl[name]['table2']) {
-                        table = tbl[name]['table2'].get(0);
-                        table.style.width = size2+'px';
-                        if (!opt.layout.size2 || table.offsetWidth > opt.layout.size2) {
-                            opt.layout.size2 = table.offsetWidth;
-                        }
-                    }
-                });
             }
+            innerHeight = outerHeight - (layout.height.head + layout.height.foot);
+            body.style.height = innerHeight+'px';
+
+            // width
+            outerWidth = maxWidth;
+            if (layout.width.autoset === 2) {
+                outerWidth = layout.width.normal + layout.width.frozen;
+                if (outerWidth > maxWidth) {
+                    outerWidth = maxWidth;
+                }
+            }
+            innerWidth = outerWidth - layout.width.frozen;
+            body.style.width = innerWidth +'px';
+
+            if (body.clientWidth < body.offsetWidth && (innerWidth + layout.scrollbar) < maxWidth) {
+                outerWidth += layout.scrollbar;
+                body.style.width = (innerWidth + layout.scrollbar)+'px';
+            }
+
+            // apply to other objects
+            if (tinytbl.body.frozen) {
+                tinytbl.body.frozen.height(body.clientHeight);
+            }
+            innerWidth = body.clientWidth;
+            if (tinytbl.foot && tinytbl.foot.normal) {
+                tinytbl.foot.normal.width(innerWidth);
+            }
+            if (tinytbl.head && tinytbl.head.normal) {
+                tinytbl.head.normal.width(innerWidth);
+            }
+
+            // set main container
+            tinytbl.main.css({'height':(outerHeight+layout.height.inner)+'px','width':(outerWidth+layout.width.inner)+'px'});
         },
 
 
         /**
-         * Calculates and syncs the height of each row
-         * from source table with another table
+         * Initialize table layout
          * @return  {void}
          * @private
          */
-        _row_size: function() {
-            var that = this;
-            if (!that.tinytbl) {
+        init_layout: function() {
+            if (!this.tinytbl) {
                 return;
             }
-            var tbl = that.tinytbl, opt = that.options;
-            if (!opt.cols.fixed) {
-                $.each(['body','foot','head'], function(index, name) {
-                    if (!opt[name] || !tbl[name] || !tbl[name]['body1']) {
-                        return; // exit: table not found
+            var options = this.options,
+                tinytbl = this.tinytbl,
+                layout  = this.layout,
+                border = function(name, border) {
+                    if (tinytbl[name] && tinytbl[name].outer) {
+                        tinytbl[name].outer.css('border-'+border, '0');
                     }
-                    var rows = tbl[name]['body1'].get(0).rows;
-                    $.each(rows, function(i) {
-                        rows[i].cells[0].style.height = rows[i].cells[0].offsetHeight+'px';
-                    });
-                    if (that._tagname(tbl[name]['body1']) === 'tbody') {
-                        opt.layout[name] = tbl[name]['table1'].get(0).offsetHeight;
-                    }
-                });
-                return;
-            }
+            };
+
             $.each(['body','foot','head'], function(index, name) {
-                if (!opt[name] || !tbl[name] || !tbl[name]['body1'] || !tbl[name]['body2']) {
+                if (!options[name] || !tinytbl[name] || !tinytbl[name].normal || !tinytbl[name].frozen) {
                     return; // exit: table not found
                 }
                 var height = [],
-                    rows1 = tbl[name]['body1'].get(0).rows,
-                    rows2 = tbl[name]['body2'].get(0).rows;
+                    rows1 = tinytbl[name].normal.children('table').get(0).rows,
+                    rows2 = tinytbl[name].frozen.children('table').get(0).rows;
                 if (rows1.length !== rows2.length) {
                     return; // exit: different rows.length
                 }
-                $.each(rows1, function(i) {
-                    height.push(rows1[i].cells[0].offsetHeight);
-                });
+                $.each(rows1, function(i) { height.push(rows1[i].cells[0].offsetHeight); });
                 $.each(rows2, function(i) {
                     var value = rows2[i].cells[0].offsetHeight;
                     if (height[i] && (height[i] >= value)) {
@@ -380,592 +361,286 @@
                     rows1[i].cells[0].style.height = height[i]+'px';
                     rows2[i].cells[0].style.height = height[i]+'px';
                 });
-                if (that._tagname(tbl[name]['body1']) === 'tbody') {
-                    opt.layout[name] = tbl[name]['table1'].get(0).offsetHeight;
-                }
+                layout.height[name] = tinytbl[name].normal.children('table').get(0).offsetHeight;
             });
+
+            if (options.head || (options.foot && options.foot.atTop)) {
+                border('body', 'top');
+            }
+            if (options.foot && !options.foot.atTop) {
+                border('body','bottom');
+            } else {
+                if (options.foot && options.foot.atTop !== 'before') {
+                    border('foot', 'top');
+                }
+                else if (options.foot && options.foot.atTop === 'before' && options.head) {
+                    border('head', 'top');
+                }
+            }
+            this.resize_layout();
         },
 
 
-        /**
-         * Resize table layout
-         * @return  {void}
-         * @private
-         */
-        _tbl_size: function() {
-            if (!this.tinytbl || !this.tinytbl.body || !this.tinytbl.body.inner1) {
-                return;
-            }
-            this._max_size();
-            var innerHeight, innerWidth,
-                outerHeight, outerWidth,
-                size = this.options.layout,
-                tbl  = this.tinytbl,
-                body = tbl.body.inner1.get(0);
-
-            // height
-            outerHeight = size.head + size.foot + size.body;
-            if (outerHeight > size.maxheight) {
-                outerHeight = size.maxheight;
-            }
-            innerHeight = outerHeight - (size.head + size.foot);
-            body.style.height = innerHeight+'px';
-
-            // width
-            outerWidth = size.size1 + size.size2;
-            if (outerWidth > size.maxwidth) {
-                outerWidth = size.maxwidth;
-            }
-            innerWidth = outerWidth - size.size2;
-            body.style.width = innerWidth +'px';
-            if (body.clientWidth < body.offsetWidth && (innerWidth + scrollbar) < size.maxwidth) {
-                outerWidth += scrollbar;
-                body.style.width = (innerWidth + scrollbar)+'px';
-            }
-
-            // apply to other objects
-            if (tbl.body.inner2) {
-                tbl.body.inner2.height(body.clientHeight);
-            }
-            innerWidth = body.clientWidth;
-            if (tbl.foot.inner1) {
-                tbl.foot.inner1.width(innerWidth);
-            }
-            if (tbl.head.inner1) {
-                tbl.head.inner1.width(innerWidth);
-            }
-
-            // set main conatiner
-            tbl.main.css({'height':outerHeight+'px','width':outerWidth+'px'});
-        },
-
-
-        /**
-         * Insert rows to source table and TinyTbl
-         * @param    rows
-         * @param    {Boolean} [before]
-         * @return   {*}
-         * @private
-         */
-        _rows_insert: function(rows, before) {
-            if (!rows || !this.tinytbl || !this.tinytbl.body || !this.tinytbl.body.body1) {
-                return; // exit: tinytbl object not found
-            }
-            var opt = this.options,
-                tbl = this.tinytbl,
-                source = tbl.main.data('body'),
-                start  = 0,
-                length = rows.length,
-                r,
-                append = before ? 'prepend' : 'append',
-                table1 = tbl.body.body1,
-                table2 = (opt.cols.fixed) ? tbl.body.body2 : null,
-                css = this.classes;
-
-            if (!table1 || (opt.cols.fixed && !table2)) {
-                return; // exit: table bodies not found
-            }
-            if (source) {
-                start = source.get(0).rows.length;
-                source[append](rows);
-            }
-
-            // reset sizes
-            if (opt.cols.autosize || !opt.cols.resizable) {
-                $.each(['foot','head','body'], function(id, key) {
-                    var element;
-                    if (element = tbl[key].body1) {
-                        element.parent('table').css({width:''});
-                    }
-                });
-            }
-
-            // create rows
-            // without fixed columns
-            if (!table2) {
-                r = 0;
-                while (r < length) { //$.each(rows, function(i) {
-                    var row = rows[r].cloneNode(true);
-                    row.className = css['body'][1];
-                    table1[append](row);
-                    r++;
-                }
-            }
-            // with fixed columns
-            else {
-                r = 0;
-                while(r < length) { //$.each(rows, function(i) {
-                    var row1 = rows[r].cloneNode(true), row2 = rows[r].cloneNode(true), c, cols, attr;
-                    c = 0; cols = opt.cols.fixed;
-                    while(c < cols) { c++; row1.deleteCell(0); }
-                    c = 0; cols = (rows[r].cells.length - opt.cols.fixed);
-                    while (c < cols) { c++; row2.deleteCell(-1); }
-                    c = 0; cols = row2.cells.length;
-                    if (attr = row1.getAttribute('id')) {
-                        row1.setAttribute('data-id', attr);
-                        row1.removeAttribute('id');
-                    }
-                    row1.className = css['body'][1];
-                    row2.className = css['body'][2];
-                    table1[append](row1);
-                    table2[append](row2);
-                    r++;
-                }
-            }
-            // resize cols and table layout if needed and/or required by users options
-            if (opt.height === 'auto' || opt.cols.autosize || !opt.cols.resizable) {
-                this._parent_show();
-                if (opt.cols.autosize || !opt.cols.resizable) {
-                    this._col_size();
-                }
-                if (opt.height === 'auto') {
-                    opt.layout.body = tbl.body.table1.outerHeight();
-                }
-                this._tbl_size();
-                this._parent_hide();
-            }
-
-            // returning
-            if (typeof(opt.rowadd) === 'function' && table1) {
-                var retval = { 'cols':null, 'rows':null, 'fixedCols':null, 'fixedRows':null };
-                retval.rows = table1.get(0).rows;
-                if (tbl.body['colum1']) {
-                    retval.cols = tbl.body['colum1'].children('col');
-                }
-                if (table2) {
-                    retval.fixedRows = table2.get(0).rows;
-                    if (tbl.body['colum2']) {
-                        retval.fixedCols = tbl.body['colum2'].children('col');
-                    }
-                }
-                opt.rowadd(rows, (!before ? start : 0), retval);
-            }
-        },
-
-
-        /**
-         * Removes rows from source table and TinyTbl
-         * @param   rows
-         * @param   [start]
-         * @return  {null|Object}
-         * @private
-         */
-        _rows_remove: function(rows, start) {
-            if (!this.tinytbl || !this.tinytbl.body || !this.tinytbl.body.body1) {
-                return null;
-            }
-            var opt = this.options,
-                tbl = this.tinytbl,
-                table1 = tbl.body.body1.get(0),
-                table2 = opt.cols.fixed ? tbl.body.body2.get(0) : null,
-                source = tbl.main.data('body').get(0),
-                row = 0, beg;
-            if (!table1 || (opt.cols.fixed && !table2)) {
-                return null;
-            }
-            if (typeof(rows) === 'number') {
-                if (typeof(start) !== 'number') {
-                    row = 0;
-                } else {
-                    row = parseInt(start, 10) || 0;
-                }
-                beg = row;
-                if (!table2) {
-                    for(;row < rows; row++) {
-                        table1.deleteRow(row);
-                        source.deleteRow(row);
-                    }
-                }
-                else {
-                    for(;row < rows; row++) {
-                        table1.deleteRow(row);
-                        table2.deleteRow(row);
-                        source.deleteRow(row);
-                    }
-                }
-            }
-            else if (typeof(rows) === 'object') {
-                if (!table2) {
-                    $(rows).each(function(row) {
-                        $(table1.rows[row]).remove();
-                        $(source.rows[row]).remove();
-                    });
-                }
-                else {
-                    $(rows).each(function(row) {
-                        $(table1.rows[row]).remove();
-                        $(table2.rows[row]).remove();
-                        $(source.rows[row]).remove();
-                    });
-                }
-                beg = null;
-            }
-            if (opt.height === 'auto') {
-                opt.layout.body = tbl.body.table1.outerHeight();
-                this._parent_show();
-                this._tbl_size();
-                this._parent_hide();
-            }
-
-            // returning
-            if (typeof(opt.rowremove) === 'function' && table1) {
-                var retval = { 'cols':null, 'rows':null, 'fixedCols':null, 'fixedRows':null };
-                retval.rows = table1.rows;
-                if (tbl.body['colum1']) {
-                    retval.cols = tbl.body['colum1'].children('col');
-                }
-                if (table2) {
-                    retval.fixedRows = table2.rows;
-                    if (tbl.body['colum2']) {
-                        retval.fixedCols = tbl.body['colum2'].children('col');
-                    }
-                }
-                opt.rowremove(rows, beg, retval);
-            }
-        },
-
-        /**
-         * Syncs scroll positions
-         * @return  {void}
-         * @private
-         */
-        _scroll: function() {
-            var tbl = this.tinytbl, opt = this.options;
-            if ( !(tbl && (opt.cols.fixed || opt.head || opt.foot)) ) {
-                return;
-            }
-            if (opt.cols.fixed) {
-                var y = tbl.body.inner1.scrollTop();
-                tbl.body.inner2.scrollTop(y);
-            }
-            if (opt.head || opt.foot) {
-                var x = tbl.body.inner1.scrollLeft();
-                if (opt.head) {
-                    tbl.head.inner1.scrollLeft(x);
-                }
-                if (opt.foot) {
-                    tbl.foot.inner1.scrollLeft(x);
-                }
-            }
-        },
-
-
-        /**
-         * Initialize table layout
-         * @return  {void}
-         * @private
-         */
-        _layout: function() {
-            if (!this.tinytbl) {
-                return;
-            }
-            var opt = this.options, tbl = this.tinytbl;
-            var margin = function(name, value) {
-                if (opt[name] && tbl[name]) {
-                    tbl[name]['inner1'].css({'margin-top':value});
-                    if (tbl[name]['inner2']) {
-                        tbl[name]['inner2'].css({'margin-top':value});
-                    }
-                }
-            };
-            if (opt.head || (opt.foot && opt.foot.atTop)) {
-                margin('body', '-1px');
-            }
-            if (opt.foot && opt.foot.atTop !== 'before') {
-                margin('foot', '-1px');
-            }
-            else if (opt.foot && opt.foot.atTop === 'before' && opt.head) {
-                margin('head', '-1px');
-            }
-            this._col_size();
-            this._row_size();
-            this._tbl_size();
-        },
-
-
-        /**
-         * Creates TinyTbl widget
-         * @private
-         */
         _create: function() {
-            var $src = this.element;
-            if (this._tagname($src) !== 'table' || this._tagname($src.parent()) === 'td' || this._tagname($src.parent()) === 'th') {
+            var $source = this.element;
+            if (this.tagname($source) !== 'table' || this.tagname($source.parent()) === 'td' || this.tagname($source.parent()) === 'th') {
                 return;
             }
             var $body = $('body'),
-                $papa = (this._parent($src) || $body),
-                opt = this.options,
-                div = {
-                    'inner1': '<div class="has-scroll" />',
-                    'inner2': '<div class="non-scroll" />',
+                $colgroup = {
+                    normal: null,
+                    frozen: null
+                },
+                $parent = (this.parent($source) || $body),
+                classes = this.classes,
+                create = {
+                    'normal': '<div class="ui-tinytbl-column" />',
+                    'frozen': '<div class="ui-tinytbl-frozen" />',
                     'outer':  '<div class="ui-helper-clearfix" />'
                 },
-                src = {
-                    'body': ($src.children('tbody') && $src.children('tbody').get(0).rows.length > 0),
-                    'foot': ($src.children('tfoot') && $src.children('tfoot').get(0).rows.length > 0),
-                    'head': ($src.children('thead') && $src.children('thead').get(0).rows.length > 0)
+                layout,
+                options = this.options,
+                source = {
+                    'body': ($source.children('tbody') && $source.children('tbody').get(0).rows.length > 0),
+                    'foot': ($source.children('tfoot') && $source.children('tfoot').get(0).rows.length > 0),
+                    'head': ($source.children('thead') && $source.children('thead').get(0).rows.length > 0)
                 },
-                tbl = {
-                    'body': null, 'head': null, 'foot': null,
+                tinytbl = {
+                    'body': null,
+                    'head': null,
+                    'foot': null,
                     'main': $('<div class="ui-tinytbl ui-widget-content ui-corner-all ui-helper-clearfix" />')
                 },
-                css = this.classes;
-
-            // fast row insert without fixed columns
-            var rowsOne = function(name) {
-                var data = $src.children('t'+name).children() || null;
-                if (!data && name === 'body') {
-                    data = $src.children();
-                }
-                if (!data || data.length < 1 || !tbl[name] || !tbl[name].body1) {
-                    return;
-                }
-                var table = tbl[name].body1.get(0), r = 0, rows = data.length;
-                while(r < rows) {
-                    var row = data.get(r);
-                    row.className = css[name][1];
-                    table.appendChild(row);
-                    r++;
+                cells, attr ;
+            var colgroup = function(first, last, type) {
+                $colgroup[type] = $('<colgroup />');
+                var num, val;
+                for (num = first; num < last; num++) {
+                    val = cells[num].offsetWidth;
+                    $colgroup[type].append('<col data-num="'+num+'" style="width:'+val+'px;" />');
+                    layout.width[type] += val;
                 }
             };
-
-            // fast row insert with fixed columns
-            var rowsTwo = function(name) {
-                var data = $src.children('t'+name).children() || null;
-                if (!data && name === 'body') {
-                    data = $src.children();
-                }
-                if (!data || data.length < 1 || !tbl[name] || !tbl[name].body1 || !tbl[name].body2) {
-                    return;
-                }
-                var table1 = tbl[name].body1.get(0), table2 = tbl[name].body2.get(0), r = 0, rows = data.length;
-                while(r < rows) {
-                    var attr, c, cols, cells = data.get(r).cells.length, row1 = data.get(r), row2 = data.get(r).cloneNode(true);
-                    c = 0; cols = opt.cols.fixed;
-                    while (c < cols) {
-                        row1.deleteCell(0);
-                        c++;
-                    }
-                    c = 0; cols = (cells - opt.cols.fixed);
-                    while (c < cols) {
-                        row2.deleteCell(-1);
-                        c++;
-                    }
-                    if (attr = row1.getAttribute('id')) {
-                        row1.setAttribute('data-id', attr);
-                        row1.removeAttribute('id');
-                    }
-                    row1.className = css[name][1];
-                    row2.className = css[name][2];
-                    table1.appendChild(row1);
-                    table2.appendChild(row2);
-                    r++;
-                }
-            };
-
-            tbl.rows = $src.get(0).rows;
-            if (tbl.rows.length > 0) {
-                tbl.cols = tbl.rows[0].cells.length;
-                tbl.rows = tbl.rows.length;
+            // OPTIONS
+            tinytbl.rows = $source.get(0).rows;
+            if (tinytbl.rows.length > 0) {
+                tinytbl.cols = tinytbl.rows[0].cells.length;
+                tinytbl.rows = tinytbl.rows.length;
             }
-            if (tbl.cols < 1) {
+            if (tinytbl.cols < 1) {
                 return; // exit: table is empty
             }
 
             // check if TinyTable should be created
-            if (!opt.cols.fixed && !isNaN(parseInt(opt.cols, 10))) {
-                opt.cols = { 'fixed' : opt.cols };
+            if (!options.cols.frozen && !isNaN(parseInt(options.cols, 10))) {
+                options.cols = { 'frozen' : options.cols };
             }
-            opt.cols.fixed = (!isNaN(parseInt(opt.cols.fixed, 10)) && opt.cols.fixed > 0 && opt.cols.fixed < tbl.cols) ? opt.cols.fixed : 0;
-            opt.head = ((opt.head && src.body && src.head)
-                ? $.extend({ 'useclass': null }, opt.head)
-                : null
-            );
-            opt.foot = ((opt.foot && src.body && src.foot)
-                ? $.extend({ 'useclass': null, 'atTop':false }, opt.foot)
-                : null
-            );
-            if (!opt.head && !opt.foot && !opt.cols.fixed) {
-                return; // exit: no fixed header, footer or columns
+            options.cols.frozen = parseInt(options.cols.frozen, 10) || 0;
+            if (options.cols.frozen >= $source.cols) {
+                options.cols.frozen = 0;
+            }
+            options.head = ((options.head && options.body && options.head) ? options.head : false);
+            options.foot = ((options.foot && options.body && options.foot) ? options.foot : false);
+            if (!options.head && !options.foot && !options.cols.frozen) {
+                return; // exit: no frozen header, footer or columns
             }
 
             // check options and/or extend
-            opt.id  = (opt.id || 'tinytbl-'+tinytables.counter);
-            opt.rtl = (opt.rtl ? 'right' : 'left');
-            if (opt.cols) {
-                if (opt.cols.resizable) {
-                    opt.cols.resizable = $.extend({ 'disables':[], 'helper':null, 'maxWidth':null, 'minWidth':30 }, opt.cols.resizable);
-                    // overwrite handles and grid
-                    opt.cols.resizable = $.extend(opt.cols.resizable, { 'handles': (opt.rtl ? 'w' : 'e'), 'grid':5 });
-                }
-                if (opt.cols.moveable) {
-                    opt.cols.moveable = $.extend({ 'disables':[], 'helper':null }, opt.cols.moveable);
-                    // overwrite axis
-                    opt.cols.moveable = $.extend(opt.cols.moveable, { 'axis':'x' });
-                }
-                if (opt.cols.sortable) {
-                    opt.cols.sortable = $.extend({ 'disables':[], 'defaults':[] }, opt.cols.sortable);
-                }
-            }
-            if (opt.resizable) {
-                opt.resizable = $.extend({ 'helper':null, 'maxHeight':null, 'maxWidth':null, 'minHeight':100, 'minWidth':100 }, opt.resizable);
-                // overwrite handles
-                opt.resizable = $.extend(opt.resizable, {
-                    'handles': (opt.rtl ? 'w,s' : 'e,s')
+            options.id  = (options.id || 'tinytbl-'+(tinytables.added+1));
+            options.rtl = (options.rtl ? 'right' : 'left');
+            if (options.cols.resizable) {
+                options.cols.resizable = $.extend({
+                    'disables': [],
+                    'helper':   null,
+                    'maxWidth': null,
+                    'minWidth': 30
+                }, options.cols.resizable);
+                // overwrite handles and grid
+                options.cols.resizable = $.extend(options.cols.resizable, {
+                    'handles': (options.rtl === 'right' ? 'w' : 'e'),
+                    'grid': 5
                 });
             }
-            opt.body = $.extend({ 'useclass': null }, opt.body);
-
-            // prepare layout options object
-            opt.layout = { 'maxheight':0, 'maxwidth':0, 'fixheight':0, 'fixwidth':0, 'size1':0, 'size2':0, 'head':0, 'foot':0 , 'factor':($papa.css('font-size') || 16), 'order':['head','body','foot'] };
-
-            // get layout order (head, body, foot | head, foot, body)
-            if (opt.foot.atTop) {
-                opt.layout.order = ['head','foot','body'];
-                if (''+opt.foot.atTop === 'before') {
-                    opt.layout.order = ['foot','head','body'];
-                }
+            if (options.cols.moveable) {
+                options.cols.moveable = $.extend({
+                    'disables': [],
+                    'helper':   null
+                }, options.cols.moveable);
+                // overwrite axis
+                options.cols.moveable = $.extend(options.cols.moveable, {
+                    'axis': 'x'
+                });
+            }
+            if (options.cols.sortable) {
+                options.cols.sortable = $.extend({
+                    'disables': [],
+                    'defaults': []
+                }, options.cols.sortable);
+            }
+            if (options.resizable) {
+                options.resizable = $.extend({
+                    'helper':    null,
+                    'maxHeight': null,
+                    'maxWidth':  null,
+                    'minHeight': 100,
+                    'minWidth': 100
+                }, options.resizable);
+                // overwrite handles
+                options.resizable = $.extend(options.resizable, {
+                    'handles': (options.rtl === 'right' ? 'w,s' : 'e,s')
+                });
+            }
+            if (!options.body) {
+                options.body = { 'useclass':null, 'autofocus':false };
             }
 
-            $.each(opt.layout.order, function(index, name) {
-                var hasrows = src[name], overflow = 'hidden', zindex = 2;
+            // prepare layout object
+            layout = {
+                'height': {
+                    'autoset': 0, 'correct': 0, 'inner': 0, // corrections
+                    'maxsize': 0,                           // max height
+                    'head': 0, 'foot': 0                    // height: header and/or footer
+                },
+                'width': {
+                    'autoset': 0, 'correct': 0, 'inner': 0, // corrections
+                    'maxsize': 0,                           // max width
+                    'frozen': 0, 'normal': 0                // width: frozen and/or normal
+                },
+                'factor': ($parent.css('font-size') || 16), // em to pixel calc factor
+                'scrollbar': $.scrollbar(),                 // scrollbar size
+                'tables': ['head','body','foot']            // order elements for layout
+            };
+
+            // get tables layout
+            if (options.foot.atTop) {
+                layout.tables = ((''+options.foot.atTop).toLowerCase() === 'before') ? ['foot','head','body'] : ['head','foot','body'];
+            }
+
+            // prepare colgroups
+            cells = $source.get(0).rows[0].cells;
+            colgroup(options.cols.frozen, tinytbl.cols, 'normal');
+            if (options.cols.frozen) {
+                colgroup(0, options.cols.frozen, 'frozen');
+            }
+
+            // save original layout
+            tinytbl.main.data('source', $source.children().clone());
+
+            // create TinyTbl Widget
+            $.each(layout.tables, function(index, name) {
+                var normal = $source.children('t'+name).get(0) || null, frozen,
+                    overflow = 'hidden',
+                    zindex = 2,
+                    table, c, cols, r = 0;
                 if (name === 'body') {
-                    hasrows = true; overflow = 'auto'; zindex = 1;
+                    if (!normal) {
+                        $source.wrapInner('<tbody />');
+                        normal = $source.children('tbody').get(0);
+                    }
+                    overflow = 'auto';
+                    zindex = 1;
                 }
+
+                if (!normal || !options[name]) {
+                    return; // exit: no rows and/or no frozen header or footer
+                }
+
                 // prepare table[name] object
-                tbl[name] = {
-                    'outer':  null,     // wrapper
-                    // scrollable area ------------------------------
-                    'colum1': null,    // colgroup element
-                    'inner1': null,    // scrollable area container
-                    'table1': null,    // table element
-                    'body1':  null,    // tbody element
-                    // fixed area -----------------------------------
-                    'colum2': null,    // colgroup element
-                    'inner2': null,    // fixed area container
-                    'table2': null,    // table element
-                    'body2':  null     // tbody element
-                };
+                tinytbl[name] = {};
+                tinytbl[name].outer = $(create.outer)
+                    .addClass('ui-tinytbl-'+ name +' '+ classes[name].normal)
+                    .css({ 'z-index':zindex });
 
-                if (!hasrows || !opt[name]) {
-                    return; // exit: no rows and/or no fixed header or footer
+                // frozen columns
+                if (options.cols.frozen) {
+                    frozen = normal.cloneNode(true);
+                    cols = (tinytbl.cols - options.cols.frozen);
+                    while (r < normal.rows.length) {
+                        c = 0; while (c < cols) { frozen.rows[r].deleteCell(-1); c++; }
+                        c = 0; while (c < options.cols.frozen) { normal.rows[r].deleteCell(0); c++; }
+                        if (attr = normal.rows[r].getAttribute('id')) {
+                            normal.rows[r].setAttribute('data-id', attr);
+                            normal.rows[r].removeAttribute('id');
+                        }
+                        r++;
+                    }
+                    frozen.className = 'ui-tinytbl-inner '+ classes[name].frozen;
+                    table = $('<table style="width:'+ layout.width.frozen+ 'px;" class="ui-tinytbl-outer" />')
+                        .append($colgroup.frozen.clone())
+                        .append(frozen);
+                    tinytbl[name].frozen = $(create.frozen)
+                        .css({ 'float':options.rtl, 'z-index':2, 'overflow':'hidden' })
+                        .append(table);
+                    tinytbl[name].outer.append(tinytbl[name].frozen);
                 }
-                tbl[name].outer  = $(div.outer).addClass('ui-tinytbl-'+name).css({ 'z-index':zindex });
-                tbl[name].inner1 = $(div.inner1).css({ 'float':opt.rtl, 'z-index':1, 'overflow':overflow });
-                tbl[name].outer.append(tbl[name].inner1);
-                if (opt.cols.fixed) {
-                    tbl[name].inner2 = $(div.inner2).css({ 'float':opt.rtl, 'z-index':2, 'overflow':'hidden' });
-                    tbl[name].outer.prepend(tbl[name].inner2);
-                }
-                tbl.main.append(tbl[name].outer);
-            });
 
-            // read content form source table $src and append to layout
-            $.each(['body','head','foot'], function(index, name) {
-                var col, data = $src.children('t'+name) || null;
-                if (name === 'body' && !data) {
-                    data = $src;
-                }
+                // normal colors
+                normal.className = 'ui-tinytbl-inner '+ classes[name].normal;
+                table = $('<table style="width:'+ layout.width.normal +'px;" class="ui-tinytbl-outer" />').append($colgroup.normal.clone()).append(normal);
+                tinytbl[name].normal = $(create.normal)
+                    .css({ 'float':options.rtl, 'z-index':1, 'overflow':overflow })
+                    .append(table);
+                tinytbl[name].outer.append(tinytbl[name].normal);
 
                 // append some properties from source table
-                if (opt[name] && data !== $src && opt[name]['useclass']) {
-                    tbl[name]['outer'].addClass(opt[name]['useclass']);
+                if (options[name] && options[name].useclass) {
+                    tinytbl[name].outer.addClass(options[name].useclass);
                 }
-                if ((!opt[name] && data === $src) || (opt[name] && data !== $src)) {
-                    tbl[name]['outer'].addClass(data.attr('class'));
-                    tbl[name]['outer'].attr('data-id', data.attr('id'));
-                }
+                frozen = null;
+                normal = null;
+                tinytbl.main.append(tinytbl[name].outer);
 
-                // save original data as clone for destroy function
-                tbl.main.data(name, data.clone());
-
-                // init table on first run or fixed header / fixed footer
-                if (opt[name] || name === 'body') {
-                    tbl[name]['table1'] = $('<table />');
-                    tbl[name]['body1']  = $('<tbody />');
-                    tbl[name]['colum1'] = $('<colgroup />');
-                    // colgroup
-                    for (col = opt.cols.fixed; col < tbl.cols; col++) {
-                        tbl[name]['colum1'].append('<col data-type="'+name+'" data-num="'+col+'" />');
-                    }
-                    tbl[name]['table1'].append(tbl[name]['colum1'], tbl[name]['body1']);
-                    tbl[name]['inner1'].append(tbl[name]['table1']);
-                    // with fixed columns
-                    if (opt.cols.fixed) {
-                        tbl[name]['table2'] = $('<table />');
-                        tbl[name]['body2']  = $('<tbody />');
-                        tbl[name]['colum2'] = $('<colgroup />');
-                        for (col = 0; col < opt.cols.fixed; col++) {
-                            tbl[name]['colum2'].append('<col data-type="'+name+'" data-num="'+col+'" />');
-                        }
-                        tbl[name]['table2'].append(tbl[name]['colum2'], tbl[name]['body2']);
-                        tbl[name]['inner2'].append(tbl[name]['table2']);
-                        tbl[name]['table1'].css('margin-'+opt.rtl,'-1px');
-                        rowsTwo(name);
-                        return;
-                    }
-                    // without fixed columns
-                    rowsOne(name);
-                    return;
-                }
-
-                // init table if no fixed header / no fixed footer
-                tbl[name]['table1'] = tbl.body.table1;
-                tbl[name]['body1'] = $('<t'+name+' />');
-                tbl[name]['table1'].find('tbody').eq(0).before(tbl[name]['body1']);
-                // with fixed columns
-                if (opt.cols.fixed) {
-                    tbl[name]['table2'] = tbl.body.table2;
-                    tbl[name]['body2']  = $('<t'+name+' />');
-                    tbl[name]['table2'].find('tbody').eq(0).before(tbl[name]['body2']);
-                    rowsTwo(name);
-                    return;
-                }
-                // without fixed columns
-                rowsOne(name);
             });
 
-            tbl.main.attr('id', opt.id).attr('role', $src.attr('id'));
-            tbl.main.addClass(opt.useclass).addClass($src.attr('class'));
+            // remove non needed
+            $colgroup.normal.remove();
+            if ($colgroup.frozen) {
+                $colgroup.frozen.remove();
+            }
 
             // append TinyTbl after original (source) table
-            $src.empty().hide().after(tbl.main);
+            tinytbl.main
+                .attr('id', options.id)
+                .attr('role', $source.attr('id'))
+                .addClass(options.useclass)
+                .addClass($source.attr('class'))
+                .addClass('ui-tinytbl-'+options.rtl);
 
-            // getting fixed sizes
-            opt.layout.fixwidth += this._fix_size(tbl.main, 'width');
-            if ((''+opt.width) === 'auto' || (''+opt.width).substr(-1,1) === '%') {
-                opt.layout.fixwidth += this._fix_size($papa, 'width');
-            }
-            opt.layout.fixheight += this._fix_size(tbl.main, 'height');
-            if ((''+opt.height) === 'auto' || (''+opt.height).substr(-1,1) === '%') {
-                opt.layout.fixheight += this._fix_size($papa, 'height');
-            }
+            $source.empty().hide().after(tinytbl.main);
 
-            // get scrollbar size
-            if (scrollbar === null) {
-                this._scrollbar();
+            // get some css styles for correct the layout
+            layout.width.correct += this.correct_size(tinytbl.main, 'width');
+            if ((''+options.width) === 'auto' || (''+options.width).substr(-1,1) === '%') {
+                layout.width.autoset = ((''+options.width) === 'auto') ? 2 : 1;
+                layout.width.correct += this.correct_size($parent, 'width');
+            }
+            layout.height.correct = this.correct_size(tinytbl.main, 'height');
+            if ((''+options.height) === 'auto' || (''+options.height).substr(-1,1) === '%') {
+                layout.height.autoset = ((''+options.height) === 'auto') ? 2 : 1;
+                layout.height.correct += this.correct_size($parent, 'height');
+            }
+            var tables = ['body','head','foot'];
+            if (tinytbl.body && tinytbl.body.outer) {
+                layout.width.inner += this.correct_size(tinytbl.body.outer, 'width');
+                for (var i = 0; i < 3; i++) {
+                    if (!tinytbl[tables[i]] || !tinytbl[tables[i]].outer) {
+                        continue;
+                    }
+                    layout.height.inner += this.correct_size(tinytbl[tables[i]].outer, 'height');
+                }
             }
 
             // save object
-            this.tinytbl = tbl;
-            tinytables.counter++;
-
+            this.tinytbl = tinytbl;
             // save options
-            this.options = opt;
+            this.options = options;
+            // save dimension
+            this.layout = layout;
+            tinytables.added++;
 
-            // init layout
-            this._parent_show();
-            this._layout();
-            this._parent_hide();
-
-            var that = this;
-            this._on( this.window, {
-                resize: function() {
-                    if (that.options.height === 'auto' || that.options.width === 'auto') {
-                        setTimeout(function() { that._tbl_size(); }, 25);
-                    }
-                }
-            });
+            this.parent_show();
+            this.init_layout();
+            this.parent_hide();
 
         },
 
@@ -978,45 +653,112 @@
             if (!this.tinytbl) {
                 return;
             }
-            var that = this, opt = that.options, tbl = that.tinytbl;
-            // scroll function
-            tbl.body.inner1.off('.tinytbl').on('scroll.tinytbl', function() {
-                that._scroll();
-            });
+            var that = this,
+                options = that.options,
+                tinytbl = that.tinytbl,
+                width = (''+this.options.width).toLowerCase(),
+                height = (''+this.options.height).toLowerCase();
+            if (tinytbl.body && tinytbl.body.normal) {
 
-            if (typeof(opt.rowselect) === 'function' && tbl.body && tbl.body.body1) {
-                tbl.body.body1.selectable({
-                    'filter':'tr',
-                    'start': function() {
-                        $('tr.ui-selected').removeClass('ui-selected').children().removeClass('ui-state-highlight');
-                    },
-                    'stop': function() {
-                        if (tbl.body.body2) {
-                            $(this).find('.ui-selected').each(function() {
-                                $(tbl.body.body2.get(0).rows[$(this).index()]).addClass('ui-selected');
-                            });
-                        }
-                        $('tr.ui-selected > td, tr.ui-selected > th').addClass('ui-state-highlight');
-                        opt.rowselect();
+                // scroll function
+                tinytbl.body.normal.off('.tinytbl').on('scroll.tinytbl', function() {
+                    var x = tinytbl.body.normal.scrollLeft(),
+                        y = tinytbl.body.normal.scrollTop();
+                    if (options.cols.frozen && tinytbl.body.frozen) {
+                        tinytbl.body.frozen.scrollTop(y);
                     }
+                    if (options.head && tinytbl.head && tinytbl.head.normal) {
+                        tinytbl.head.normal.scrollLeft(x);
+                    }
+                    if (options.foot && tinytbl.foot && tinytbl.foot.normal) {
+                        tinytbl.foot.normal.scrollLeft(x);
+                    }
+                });
+
+                // auto focus
+                if (options.body.autofocus) {
+                    setTimeout(function() { tinytbl.body.normal.focus(); }, 100);
+                }
+            }
+
+            if (height === 'auto' || width === 'auto') {
+                $(window).resize(function() {
+                    if (tinytables.timers && tinytables.timers.resizewin) {
+                        clearTimeout(tinytables.timers.resizewin);
+                        tinytables.timers.resizewin = null;
+                    }
+                    setTimeout(function() { that.resize_layout(); }, 50);
                 });
             }
 
-            if (opt.body.autofocus) {
-                setTimeout(function() { tbl.body.inner1.focus(); }, 100);
+            if (tinytbl.body && tinytbl.body.normal) {
+                var tables = [ null, null ];
+                tables[0] = tinytbl.body.normal.children('table').children().not('colgroup');
+                if (tinytbl.body.frozen) {
+                    tables[1] = tinytbl.body.frozen.children('table').children().not('colgroup');
+                }
+                $.each(tables, function(key, table) {
+                    if (!table) {
+                        return;
+                    }
+                    var tbl = (key > 0 ? tables[0] : tables[1]);
+                    table.off('.tinytbl-mc')
+                        .on('mouseover.tinytbl-mc', '>tr', function() {
+                            var idx = $(this).index();
+                            $(this).addClass('ui-state-hover');
+                            if (tbl) {
+                                tbl.children('tr').eq(idx).addClass('ui-state-hover');
+                            }
+                        }).on('mouseout.tinytbl-mc', '>tr', function() {
+                            var idx = $(this).index();
+                            $(this).removeClass('ui-state-hover');
+                            if (tbl) {
+                                tbl.children('tr').eq(idx).removeClass('ui-state-hover');
+                            }
+                        });
+                });
+                if (typeof(options.rows.onSelect) === 'function') {
+                    $.each(tables, function(key, table) {
+                        if (!table) {
+                            return;
+                        }
+                        var tbl = (key > 0 ? tables[0] : tables[1]);
+                        table.on('click.tinytbl-mc', '>tr', function(event) {
+                            var idx = $(this).index(),
+                            obj = (event.target || event.srcElement);
+                            if (obj.href || obj.type) {
+                                return true;
+                            }
+                            if ($(this).hasClass('is-selected')) {
+                                $(this).removeClass('ui-selected is-selected ui-state-highlight');
+                                if (!tbl) {
+                                    return false;
+                                }
+                                tbl.children('tr').eq(idx).removeClass('ui-selected is-selected ui-state-highlight');
+                                return false;
+                            }
+                            $(this).addClass('ui-selected is-selected ui-state-highlight');
+                            if (!tbl) {
+                                return false;
+                            }
+                            tbl.children('tr').eq(idx).addClass('ui-selected is-selected ui-state-highlight');
+                            return false;
+                        });
+                        if (options.rows.multiselect) {
+                            table.selectable({
+                                'filter':'>tr',
+                                'distance': 15,
+                                'start': function() {
+                                    $(this).find('>tr.ui-selected').trigger('click.tinytbl-mc');
+                                },
+                                'stop': function() {
+                                    $(this).find('>tr.ui-selected').trigger('click.tinytbl-mc');
+                                }
+                            });
+                        }
+                    });
+                }
             }
-
-        },
-
-
-        /**
-         * Append new rows to the TinyTbl body object
-         * @param   {jQuery|Object} rows
-         * @return  {*}
-         * @public
-         */
-        append: function(rows) {
-            return this._rows_insert(rows, false);
         },
 
 
@@ -1030,72 +772,16 @@
                 return;
             }
             this.element.show().append(
-                this.tinytbl.main.data('head'),
-                this.tinytbl.main.data('foot'),
-                this.tinytbl.main.data('body')
+                this.tinytbl.main.data('source')
             ).removeData();
-            this.element.removeUniqueId();
             this.tinytbl.main.remove().removeData();
             this.tinytbl = null;
 
             // remove events
-            tinytables.counter = tinytables.counter -1;
-            if (tinytables.counter < 1) {
-                $(window).off('.tinytbl');
+            tinytables.removed++;
+            if (tinytables.removed >= tinytables.added) {
+                this._off( this.window, 'resize');
             }
-        },
-
-
-        /**
-         * Get the data of an TinyTbl object
-         * @param   {String} [name]   ('body'|'head'|'foot')
-         * @return  {*}
-         * @public
-         */
-        getdata: function(name) {
-            name = name || 'body';
-            if (!this.tinytbl || !this.tinytbl[name] || !this.tinytbl[name].body1) {
-                return null;
-            }
-            return {
-                1 : this.tinytbl[name].body1.get(0).rows || null,
-                2 : this.tinytbl[name].body2 ? (this.tinytbl[name].body2.get(0).rows || null) : null
-            };
-        },
-
-
-        /**
-         * Get the number of rows in TinyTbl body object
-         * @return  {Number}
-         * @public
-         */
-        numrows: function() {
-            if (!this.tinytbl || !this.tinytbl.main.data('body')) {
-                return 0;
-            }
-            return this.tinytbl.main.data('body').get(0).rows.length;
-        },
-
-        /**
-         * Prepend new rows to the TinyTbl body object
-         * @param   {jQuery|Object} rows
-         * @return  {*}
-         * @public
-         */
-        prepend: function(rows) {
-            return this._rows_insert(rows, true);
-        },
-
-
-        /**
-         * Remove rows from the TinyTbl body object
-         * @param   {jQuery|Number} rows       // jQuery object of table rows or integer of rows to be deleted
-         * @param   {Number}        [start]    // if rows is integer, then set start
-         * @return  {*}
-         * @public
-         */
-        remove: function(rows, start) {
-            return this._rows_remove(rows, start);
         },
 
         '':''

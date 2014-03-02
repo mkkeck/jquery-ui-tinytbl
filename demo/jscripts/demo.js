@@ -1,6 +1,6 @@
 $(document).ready(function() {
 
-    var cols = 20, fixed = 2, rows = 50;
+    var cols = 20, frozen = 2, rows = 50;
 
     var table = $('<table id="sample-table-1"></table>');
 
@@ -20,11 +20,14 @@ $(document).ready(function() {
         console.time(debug);
     }
     var columns=function(row, num) {
-        var max = (cols + 1), fix = (fixed + 1);
+        var max = (cols + 1), fix = (frozen + 1);
         for(var c = 1; c < max; c++) {
             if (c < fix) {
                 row.append('<th>cell['+num+']['+c+']</th>');
             } else {
+                if (c < fix+1) {
+                    row.append('<td><table><tbody><tr><td>tbl['+num+']['+c+']</td></tr></tbody></table></td>');
+                }
                 row.append('<td>cell['+num+']['+c+']</td>');
             }
         }
@@ -67,34 +70,41 @@ $(document).ready(function() {
             console.time(debug);
         }
         table.tinytbl({
-            'body': { 'autofocus':false },
-            'head': { 'useclass':'test' },
-            'foot': { 'useclass':'test', 'atTop':false },
+            'body': {
+                'useclass': null,
+                'autofocus':false
+            },
+            'head': {
+                'useclass':null
+            },
+            'foot': {
+                'useclass':null,
+                'atTop':false
+            },
             'cols': {
-                'fixed': fixed,
+                'frozen': frozen,
                 'moveable':  { 'disables': [0,1] },
                 'resizable': { 'disables': [0,1,2,4,5] },
                 'sortable':  { 'disables': [], defaults : [] }
             },
             'rtl':0,
-            'width':'auto', 'height':'auto',
-            'rowadd': function(rows, pos, data) {
-                console.log('add');
-                console.log(rows);
-                console.log(pos);
-                console.log(data);
+            'width':'auto',
+            'height':'auto',
+            'rows': {
+                'onInsert':function(rows, pos, data) {
+                    console.log('added: ', rows, ', ', pos, '; ', data);
+                },
+                'onRemove':function(rows, pos, data) {
+                    console.log('removed: ', rows, ', ', pos, '; ', data);
+                },
+                'onSelect':function(rows, pos, data) {
+                    console.log('select: ', rows, ', ', pos, '; ', data);
+                },
+                'onContext': function(row, index, x, y) {
+                    console.log('context: ', row, ', ', index, '; ', x ,', ', y);
+                },
+                multiselect: false
             },
-            'rowselect': function(event, ui) {
-                console.log('You selected the following rows: ' + $(this).find('.ui-selected').map(function(id) {
-                    return id;
-                }).get().join(', '));
-            },
-            /*'rowremove': function(rows, pos, data) {
-                console.log('remove');
-                console.log(rows);
-                console.log(pos);
-                console.log(data);
-            },*/
             '':''
         });
         //table.tinytbl('focus');
@@ -136,7 +146,7 @@ $(document).ready(function() {
         row = $('<tr style="color: #c00"></tr>');
         rows++;
         columns(row, rows);
-        source.tinytbl('prepend', row);
+        table.tinytbl('prepend', row);
         return false;
     });
     $('a.remove').on('click',this, function() {
@@ -152,7 +162,6 @@ $(document).ready(function() {
         return false;
     });
 
-    console.log(table.tinytbl('getdata','head'));
 
 
 });
