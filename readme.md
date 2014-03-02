@@ -70,7 +70,7 @@ This option is false, if your source table does not include a `<tfoot>` and/or `
 - `atTop: true` or `atTop: 'after'` sets the foot-container beetween the head- and body-container.  
 - `atTop: 'before'` the foot-container is the first-container.  
 If youd don't want to use a table footer, please set: `foot: false` or `foot: null`.  
-Notice: If `foot: false` or `foot: null`` the footer of your source table would not be available in TinyTable.
+Notice: If `foot: false` or `foot: null` the footer of your source table would not be available in TinyTable.
 
 
 ##### Option `head`  
@@ -81,7 +81,7 @@ If you don't want to use a table header, please set: `head: false` or `head: nul
 
 
 ##### Options `height` and `width`
-The new version of TinyTable has an intelligent calculation for the correct diemnsions. The deprecated option `renderer` is removed.  
+The new version of TinyTable has an intelligent calculation for the correct dimensions. The deprecated option `renderer` is removed.  
 You can use any of the following units to set the dimensions: `%`, `px`, `em` or `pt`. If you not use an unit, calculation will be done with pixels.  
 
 ###### Default or pixels `px`
@@ -101,7 +101,7 @@ If you use `'auto'` for the options `height` and/or `width`, TinyTable would be 
 
 
 ##### Option `id`
-Default is `null` and will use an internal id lik `tinytbl-XX` where `XX` is internal counter. You can set here your own unique id: `id: 'my-own-unique-tt'`.  
+Default is `null` and will use an internal id like `tinytbl-XX` where `XX` is a internal counter. You can set here your own unique id: `id: 'my-own-unique-tt'`.  
 
 
 ##### Option `rows`
