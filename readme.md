@@ -150,13 +150,27 @@ You can set here your own unique id: `id: 'my-own-unique-tt'`.
 This setting is not fully implemented yet.
 
 ###### Function `onInsert()`
-Not implemented yet.
+Callback function for `$('table.selector').tinytbl('append'|'prepend', [rows])`.  
+Usage:  
+  `onInsert({object} inserted, {jQuery} normal, [{jQuery} frozen])` 
+
+Returns three params:  
+- `{object} rows`, inserted rows  
+- `{object} normal`, scrollable columns area  
+- `{object} frozen`, frozen columns area
 
 ###### Function `onRemove()`
-Not implemented yet.
+Callback function for `$('table.selector').tinytbl('remove', rows, [start])`.
+Usage:  
+  `onRemove({Number} removed, {jQuery} normal, [{jQuery} frozen])`  
+  
+Returns three params:  
+- `{number} removed`, number of removed rows  
+- `{object} normal`, scrollable columns area  
+- `{object} frozen`, frozen columns area  
 
 ###### Function `onSelect()`
-Partial implemented for testing the option `rows.multiselect`
+Not implemented yet, refactor for faster init.
 
 ###### Function `onContext()`
 Not implemented yet. Would be an right click popup menu later.
