@@ -43,6 +43,12 @@
     border: inherit;
     color: inherit;
 }
+.ui-tinytbl-inner > tr > td,
+.ui-tinytbl-inner > tr > th {
+    padding: 4px;
+    text-overflow: ellipsis;
+    min-width: 30px;
+}
 /* Borders horizontal */
 .ui-tinytbl-inner > tr+tr > td,
 .ui-tinytbl-inner > tr+tr > th {
@@ -56,6 +62,10 @@
 .ui-tinytbl-inner > tr:first-child > td,
 .ui-tinytbl-inner > tr:first-child > th {
     border-top: 0 none;
+    border-bottom: 0 none;
+}
+.ui-tinytbl-inner > tr.ui-data-row-last > td,
+.ui-tinytbl-inner > tr.ui-data-row-last > th {
     border-bottom: 0 none;
 }
 

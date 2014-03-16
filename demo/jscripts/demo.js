@@ -19,37 +19,32 @@ $(document).ready(function() {
     if (debug !== '') {
         console.time(debug);
     }
-    var columns=function(row, num) {
-        var max = (cols + 1), fix = (frozen + 1);
+    var columns=function(num) {
+        var max = (cols + 1), fix = (frozen + 1), col = '';
         for(var c = 1; c < max; c++) {
             if (c < fix) {
-                row.append('<th>cell['+num+']['+c+']</th>');
+                col+='<th>cell['+num+']['+c+']</th>';
             } else {
-                if (c < fix+1) {
-                    row.append('<td><table><tbody><tr><td>tbl['+num+']['+c+']</td></tr></tbody></table></td>');
-                }
-                row.append('<td>cell['+num+']['+c+']</td>');
+                //if (c < fix+1) {
+                //    row.append('<td><table><tbody><tr><td>tbl['+num+']['+c+']</td></tr></tbody></table></td>');
+                //}
+                col+='<td>cell['+num+']['+c+']</td>';
             }
         }
+        return col;
     };
     for (var t = 0; t < 3; t++) {
         var row;
         switch(t) {
             case 0:
-                row = $('<tr></tr>');
-                thead.append(row);
-                columns(row, 1);
+                thead.append('<tr>'+columns(1)+'</tr>');
                 break;
             case 1:
-                row = $('<tr></tr>');
-                tfoot.append(row);
-                columns(row, rows);
+                tfoot.append('<tr>'+columns(rows)+'</tr>');
                 break;
             default:
                 for(var r = 2; r < rows; r++) {
-                    row = $('<tr id="rownum-'+r+'"></tr>');
-                    tbody.append(row);
-                    columns(row, r);
+                    tbody.append('<tr id="rownum-'+r+'">'+columns(r)+'</tr>');
                 }
                 break;
         }
@@ -85,17 +80,18 @@ $(document).ready(function() {
                 'frozen': frozen,
                 'moveable':  { 'disables': [0,1] },
                 'resizable': { 'disables': [0,1,2,4,5] },
-                'sortable':  { 'disables': [], defaults : [] }
+                'sortable':  { 'disables': [], defaults : { 0:'asc' ,5:'desc' } }
             },
             'rtl':0,
             'width':'auto',
             'height':'auto',
+
             'rows': {
-                'onInsert':function(rows, pos, data) {
-                    console.log('added: ', rows, ', ', pos, '; ', data);
+                'onInsert':function(rows, normal, frozen) {
+                    console.log('added: ', rows, normal, frozen);
                 },
-                'onRemove':function(rows, pos, data) {
-                    console.log('removed: ', rows, ', ', pos, '; ', data);
+                'onRemove':function(rows, normal, frozen) {
+                    console.log('removed: ', rows, ', ', normal, frozen);
                 },
                 'onSelect':function(rows, pos, data) {
                     console.log('select: ', rows, ', ', pos, '; ', data);
@@ -103,8 +99,9 @@ $(document).ready(function() {
                 'onContext': function(row, index, x, y) {
                     console.log('context: ', row, ', ', index, '; ', x ,', ', y);
                 },
-                multiselect: false
+                multiselect: 1
             },
+
             '':''
         });
         //table.tinytbl('focus');
@@ -129,24 +126,20 @@ $(document).ready(function() {
         return false;
     });
     $('a.append').on('click',this, function() {
-        row = $('<tr style="color: #c00"></tr>');
         rows++;
-        columns(row, (rows*5));
         if (debug !== '') {
             debug = 'Append row';
             console.time(debug);
         }
-        table.tinytbl('append', row);
+        table.tinytbl('append', ['<tr style="color: #cc0000;">'+columns(rows)+'</tr>', columns(rows+1)]);
         if (debug !== '') {
             console.timeEnd(debug);
         }
         return false;
     });
     $('a.prepend').on('click',this, function() {
-        row = $('<tr style="color: #c00"></tr>');
         rows++;
-        columns(row, rows);
-        table.tinytbl('prepend', row);
+        table.tinytbl('prepend', '<tr style="color: #cc0000;">'+columns(rows)+'</tr>');
         return false;
     });
     $('a.remove').on('click',this, function() {
