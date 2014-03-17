@@ -1,0 +1,408 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>jQuery UI TinyTable by mkkeck</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>jQuery UI TinyTable</h1>
+        <p>jQuery UI Table with fixed header, footer and columns</p>
+        <p class="view"><a href="https://github.com/mkkeck/jquery-ui-tinytbl">View the Project on GitHub <small>mkkeck/jquery-ui-tinytbl</small></a></p>
+        <ul>
+          <li><a href="https://github.com/mkkeck/jquery-ui-tinytbl/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/mkkeck/jquery-ui-tinytbl/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/mkkeck/jquery-ui-tinytbl">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p>Light weight and fully themeable jQuery UI Plugin to generate tables on
+the fly with fixed columns, header and/or footer.  Simple usage and a
+small plugin with basic functions like append, prepend or remove one
+row to the table.</p>
+
+<h2>
+<a name="api-description" class="anchor" href="#api-description"><span class="octicon octicon-link"></span></a>API description</h2>
+
+<h3>
+<a name="create" class="anchor" href="#create"><span class="octicon octicon-link"></span></a>Create</h3>
+
+<p>Convert a normal table into a TinyTable, simple use this command:<br><code>$('table.selector').tinytbl({ });</code></p>
+
+<h4>
+<a name="you-can-use-follow-options" class="anchor" href="#you-can-use-follow-options"><span class="octicon octicon-link"></span></a>You can use follow options:</h4>
+
+<pre><code>$('table.selector').tinytbl({
+  'body': {
+    'useclass': null,
+    'autofocus': false
+  },
+  'cols': {
+    'autosize': false,   // Not used yet
+    'frozen': 0,
+    'moveable': false,   // Not implemented yet
+    'resizable': false,  // Not implemented yet
+    'sortable': false    // Not implemented yet
+  },
+  'foot': {
+    'useclass': null,
+    'atTop': false
+  },
+  'head': {
+    'useclass': null
+  },
+  'height': 'auto',
+  'id': null,
+  'resizable': false,     // Not implemented yet
+  'rows': {
+    'onInsert': null,     // function() {}, but not implemented yet
+    'onRemove': null,     // function() {}, but not implemented yet
+    'onSelect': null,     // function() {}, only silly test
+    'onContext': null,    // function() {}, but not implemented yet
+    'multiselect': false
+  },
+  'rtl': false,
+  'useclass': null,
+  'width': 'auto'
+});
+</code></pre>
+
+<h5>
+<a name="option-body" class="anchor" href="#option-body"><span class="octicon octicon-link"></span></a>Option <code>body</code>
+</h5>
+
+<p>This option is allways true, but you can setup here some specials.</p>
+
+<ul>
+<li>
+<code>useclass: 'your-css-body-classname'</code> to setup an extra CSS classname.<br>
+</li>
+<li>
+<code>autofocus: false</code> disables (with <code>true</code> enables) the autofocus to the
+scrollable area after the widget was created and/or init.</li>
+</ul><h5>
+<a name="option-cols" class="anchor" href="#option-cols"><span class="octicon octicon-link"></span></a>Option <code>cols</code>
+</h5>
+
+<p>Here you can set the frozen columns for TinyTable.  </p>
+
+<ul>
+<li>
+<code>autosize: false</code> disables columns resizing after inserting or deleting
+rows to the body container.  This option is not used at the moment,
+because the insert and delete methods are not implemented.<br>
+</li>
+<li>
+<code>frozen: 0</code> set the number of columns to be frozen. <code>0</code>, <code>null</code> or <code>false</code>
+disables frozen columns.<br>
+</li>
+<li>
+<code>moveable: false</code> this options is not implemented yet.  Later it would be
+an configuarable object of moveable columns.  To enable this feature, you
+need jQuery UI Draggable/Droppable<br>
+</li>
+<li>
+<code>resizable: false</code> this options is not implemented yet.  Later it would be
+an configuarable object of resizable columns.  To enable this feature, you
+need jQuery UI Resizable.<br>
+</li>
+<li>
+<code>sortable: false</code> this options is not implemented yet.  Later it would be
+an configuarable object for sorting table data.<br>
+</li>
+</ul><h5>
+<a name="option-foot" class="anchor" href="#option-foot"><span class="octicon octicon-link"></span></a>Option <code>foot</code>
+</h5>
+
+<p>This option is false, if your source table does not include a <code>&lt;tfoot&gt;</code>
+and/or <code>&lt;tbody&gt;</code> html tag.  </p>
+
+<ul>
+<li>
+<code>useclass: 'your-css-foot-classname</code> to setup an extra CSS classname.<br>
+</li>
+<li>
+<code>atTop: false</code> is default and will set the foot-container to the bottom
+of TinyTable.<br>
+</li>
+<li>
+<code>atTop: true</code> or <code>atTop: 'after'</code> sets the foot-container beetween the
+head- and body-container.<br>
+</li>
+<li>
+<code>atTop: 'before'</code> the foot-container is the first-container.<br>
+</li>
+</ul><p>If youd don't want to use a table footer, please set: <code>foot: false</code> or
+<code>foot: null</code>.<br><strong>Notice:</strong><br>
+If <code>foot: false</code> or <code>foot: null</code> the footer of your source table would not
+be available in TinyTable.  </p>
+
+<h5>
+<a name="option-head" class="anchor" href="#option-head"><span class="octicon octicon-link"></span></a>Option <code>head</code>
+</h5>
+
+<p>This option is false, if your source table does not include a <code>&lt;thead&gt;</code>
+and/or <code>&lt;tbody&gt;</code> html tag.</p>
+
+<ul>
+<li>
+<code>useclass: 'your-css-head-classname</code> to setup an extra CSS classname.<br>
+</li>
+</ul><p>If you don't want to use a table header, please set: <code>head: false</code> or
+<code>head: null</code>.<br><strong>Notice:</strong><br>
+If <code>head: false</code> or <code>head: null</code> the header of your source table would not
+be available in TinyTable. Column resizing, reorder and data sorting would
+be disabled, if no header is used.</p>
+
+<h5>
+<a name="options-height-and-width" class="anchor" href="#options-height-and-width"><span class="octicon octicon-link"></span></a>Options <code>height</code> and <code>width</code>
+</h5>
+
+<p>The new version of TinyTable has an intelligent calculation for the correct
+dimensions. The deprecated option <code>renderer</code> is removed.
+You can use any of the following units to set the dimensions:
+<code>%</code>, <code>px</code>, <code>em</code> or <code>pt</code>.<br>
+If you not use an unit, calculation will be done with pixels.</p>
+
+<h6>
+<a name="default-or-pixels-px" class="anchor" href="#default-or-pixels-px"><span class="octicon octicon-link"></span></a>Default or pixels <code>px</code>
+</h6>
+
+<p>Set the dimensions to the given values.</p>
+
+<h6>
+<a name="points-pt" class="anchor" href="#points-pt"><span class="octicon octicon-link"></span></a>Points <code>pt</code>
+</h6>
+
+<p>Calculates the dimensions with given points into pixels.<br>
+Here's a small sample:
+you set the width to <code>886.5pt</code> and the result is <code>886.5pt * 1.3 = 1152px</code>.</p>
+
+<h6>
+<a name="percentage-" class="anchor" href="#percentage-"><span class="octicon octicon-link"></span></a>Percentage <code>%</code>
+</h6>
+
+<p>Calculates the <code>height</code> and / or <code>width</code> in percentage values of available
+<code>height</code> and/or <code>width</code>.<br>
+A small sample: your table has a container and its width
+is <code>1280px</code>, you will set the width of TinyTable to <code>90%</code> than you get
+<code>1280px/100% * 90% = 1152px</code>.</p>
+
+<h6>
+<a name="relative-with-em" class="anchor" href="#relative-with-em"><span class="octicon octicon-link"></span></a>Relative with <code>em</code>
+</h6>
+
+<p>Calculates the <code>height</code> and / or <code>width</code> relative to the used font-size. The
+default factor for this is <code>16px</code>.<br>
+Here's a small sample: you set the width to <code>72em</code> and the result is <code>72em/1em * 16px = 1152px</code>.</p>
+
+<h6>
+<a name="dimensions-with-auto" class="anchor" href="#dimensions-with-auto"><span class="octicon octicon-link"></span></a>Dimensions with <code>auto</code>
+</h6>
+
+<p>If you use <code>'auto'</code> for the options <code>height</code> and/or <code>width</code>, TinyTable would be
+resized to maximum available <code>height</code> and/or <code>width</code>. If TinyTable smaller than
+maximum available <code>height</code> and <code>width</code> it would be resized to its outersize.</p>
+
+<h5>
+<a name="option-id" class="anchor" href="#option-id"><span class="octicon octicon-link"></span></a>Option <code>id</code>
+</h5>
+
+<p>Default is <code>null</code> and will use an internal id like <code>tinytbl-XX</code> where <code>XX</code> is a
+internal counter.<br>
+You can set here your own unique id: <code>id: 'my-own-unique-tt'</code>.</p>
+
+<h5>
+<a name="option-rows" class="anchor" href="#option-rows"><span class="octicon octicon-link"></span></a>Option <code>rows</code>
+</h5>
+
+<p>This setting is not fully implemented yet.</p>
+
+<h6>
+<a name="function-oninsert" class="anchor" href="#function-oninsert"><span class="octicon octicon-link"></span></a>Function <code>onInsert()</code>
+</h6>
+
+<p>Callback function for <code>$('table.selector').tinytbl('append'|'prepend', [rows])</code>.<br>
+Usage:<br><code>onInsert({object} inserted, {jQuery} normal, [{jQuery} frozen])</code> </p>
+
+<p>Returns three params:  </p>
+
+<ul>
+<li>
+<code>{object} rows</code>, inserted rows<br>
+</li>
+<li>
+<code>{object} normal</code>, scrollable columns area<br>
+</li>
+<li>
+<code>{object} frozen</code>, frozen columns area</li>
+</ul><h6>
+<a name="function-onremove" class="anchor" href="#function-onremove"><span class="octicon octicon-link"></span></a>Function <code>onRemove()</code>
+</h6>
+
+<p>Callback function for <code>$('table.selector').tinytbl('remove', rows, [start])</code>.
+Usage:<br><code>onRemove({Number} removed, {jQuery} normal, [{jQuery} frozen])</code>  </p>
+
+<p>Returns three params:  </p>
+
+<ul>
+<li>
+<code>{number} removed</code>, number of removed rows<br>
+</li>
+<li>
+<code>{object} normal</code>, scrollable columns area<br>
+</li>
+<li>
+<code>{object} frozen</code>, frozen columns area<br>
+</li>
+</ul><h6>
+<a name="function-onselect" class="anchor" href="#function-onselect"><span class="octicon octicon-link"></span></a>Function <code>onSelect()</code>
+</h6>
+
+<p>Not implemented yet, refactor for faster init.</p>
+
+<h6>
+<a name="function-oncontext" class="anchor" href="#function-oncontext"><span class="octicon octicon-link"></span></a>Function <code>onContext()</code>
+</h6>
+
+<p>Not implemented yet. Would be an right click popup menu later.</p>
+
+<h6>
+<a name="multiselect" class="anchor" href="#multiselect"><span class="octicon octicon-link"></span></a><code>multiselect</code>
+</h6>
+
+<p>Setup, if row multiselection would available or not.<br>
+Default is <code>false</code>. On <code>true</code> it requires the function <code>rows.onSelect()</code>
+and jQuery UI Selectable.</p>
+
+<h5>
+<a name="option-rtl" class="anchor" href="#option-rtl"><span class="octicon octicon-link"></span></a>Option <code>rtl</code>
+</h5>
+
+<p>Set the text direction:  </p>
+
+<ul>
+<li>
+<code>rtl: false</code>, text direction is left to right<br>
+</li>
+<li>
+<code>rtl: true</code>, text direction is right to left</li>
+</ul><h5>
+<a name="option-useclass" class="anchor" href="#option-useclass"><span class="octicon octicon-link"></span></a>Option <code>useclass</code>
+</h5>
+
+<p>Here you can set an extra CSS classname for the container of TinyTable.<br>
+Default value is <code>null</code>.</p>
+
+<h3>
+<a name="destroy" class="anchor" href="#destroy"><span class="octicon octicon-link"></span></a>Destroy</h3>
+
+<p>To remove TinyTable and restore original table call follow command:<br><code>$('table.selector').tinytbl('destroy');</code></p>
+
+<h2>
+<a name="changelog" class="anchor" href="#changelog"><span class="octicon octicon-link"></span></a>Changelog</h2>
+
+<h4>
+<a name="version-312-still-under-development" class="anchor" href="#version-312-still-under-development"><span class="octicon octicon-link"></span></a>Version 3.1.2, still under development</h4>
+
+<p><strong>Complete reprogrammed</strong>  </p>
+
+<ul>
+<li>Ready for jQuery 1.10.2 and jQuery UI 1.10.3.<br>
+</li>
+<li>Faster implementation, and easier interface<br>
+</li>
+<li>Option 'renderer' removed<br>
+</li>
+<li><p>Prepared to support col-resizing, col-moving, col-reorder  </p></li>
+<li>
+<p>[2014-03-16] Methods:  </p>
+
+<ul>
+<li>add new rows at the end of the table body:<br><code>$('table.selector').tinytbl('append', [rows])</code>
+</li>
+<li>add new rows at the beginning of table body:<br><code>$('table.selector').tinytbl('prepend', [rows])</code>
+</li>
+<li>remove table rows:<br><code>$('table.selector').tinytbl('remove', rows, [start])</code>
+</li>
+<li>get the number of rows in table body:<br><code>$('table.selector').tinytbl('numrows')</code>
+</li>
+</ul>
+</li>
+</ul><h4>
+<a name="version-212beta" class="anchor" href="#version-212beta"><span class="octicon octicon-link"></span></a>Version 2.1.2beta</h4>
+
+<p><strong>Support interlock tables</strong><br><a href="https://github.com/mkkeck/jquery-ui-tinytbl/tree/2.1.2beta">https://github.com/mkkeck/jquery-ui-tinytbl/tree/2.1.2beta</a></p>
+
+<h4>
+<a name="version-211" class="anchor" href="#version-211"><span class="octicon octicon-link"></span></a>Version 2.1.1</h4>
+
+<p><strong>1st official public release</strong><br><a href="https://github.com/mkkeck/jquery-ui-tinytbl/tree/2.1.1">https://github.com/mkkeck/jquery-ui-tinytbl/tree/2.1.1</a></p>
+
+<h4>
+<a name="version-190a-released-2011-10-08" class="anchor" href="#version-190a-released-2011-10-08"><span class="octicon octicon-link"></span></a>Version 1.9.0a, released 2011-10-08</h4>
+
+<p><strong>1st internal release</strong>  </p>
+
+<h2>
+<a name="notes" class="anchor" href="#notes"><span class="octicon octicon-link"></span></a>Notes</h2>
+
+<h4>
+<a name="minimum-requirements" class="anchor" href="#minimum-requirements"><span class="octicon octicon-link"></span></a>Minimum requirements:</h4>
+
+<ul>
+<li>jQuery 1.9.x<br>
+</li>
+<li>jQuery UI Core 1.8.16<br>
+</li>
+<li>jQuery UI Widget 1.8.16<br>
+</li>
+<li>Dependencies on options:<br><ul>
+<li>jQuery UI Resizable<br>
+</li>
+<li>jQuery UI Selectable<br>
+</li>
+<li>jQuery UI Drag/Drop<br>
+</li>
+</ul>
+</li>
+</ul><h4>
+<a name="tested-browsers" class="anchor" href="#tested-browsers"><span class="octicon octicon-link"></span></a>Tested browsers:</h4>
+
+<ul>
+<li>Firefox (&gt; 26)<br>
+</li>
+<li>Google Chrome (&gt; 21)<br>
+</li>
+<li>Internet Explorer (&gt; 8)<br>
+</li>
+</ul><h4>
+<a name="misc" class="anchor" href="#misc"><span class="octicon octicon-link"></span></a>Misc:</h4>
+
+<ul>
+<li>To enable fixed table header the table must have a tbody and a thead.<br>
+</li>
+<li>To enable fixed table footer the table must have a tbody and a tfoot.<br>
+</li>
+</ul>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/mkkeck">mkkeck</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
