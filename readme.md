@@ -5,6 +5,10 @@ the fly with fixed columns, header and/or footer.  Simple usage and a
 small plugin with basic functions like append, prepend or remove one
 row to the table.
 
+## Discontinued
+
+This project is discontinued and only for archivement.
+
 
 ## API description
 
